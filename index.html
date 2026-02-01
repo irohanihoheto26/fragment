@@ -463,8 +463,14 @@
             </div>
             <div id="user-stats-area" style="padding: 15px; background: #f0f0f0; border-radius: 8px; display: flex; gap: 20px; margin-bottom: 20px; font-size: 0.9em;">
                 <span>合計いいね: <strong id="total-likes">0</strong></span>
-                <span>フォロー: <strong id="following-count">-</strong></span>
-                <span>フォロワー: <strong id="follower-count">-</strong></span>
+                
+                <span onclick="showFollowingList()" style="cursor:pointer; text-decoration:underline; transition:0.3s;" onmouseover="this.style.color='#fcaf17'" onmouseout="this.style.color='inherit'">
+                    フォロー: <strong id="following-count">-</strong>
+                </span>
+                
+                <span onclick="showFollowerList()" style="cursor:pointer; text-decoration:underline; transition:0.3s;" onmouseover="this.style.color='#fcaf17'" onmouseout="this.style.color='inherit'">
+                    フォロワー: <strong id="follower-count">-</strong>
+                </span>
             </div>
             <div id="my-works-list">読み込み中...</div>
         </div>
@@ -1999,7 +2005,74 @@
     function closeLikeModal() {
         document.getElementById('like-users-overlay').classList.add('hidden');
     }
-    
+
+    // --- フォロー・フォロワーリスト表示機能 ---
+
+    // 1. フォローしている人を見る
+    async function showFollowingList() {
+        if (!currentUser) return;
+
+        // フォローデータを取得
+        const { data: follows, error } = await api.from('follows').select('following_id').eq('follower_id', currentUser.id);
+        
+        if (error) return alert("データ取得失敗");
+        if (!follows || follows.length === 0) return alert("まだ誰もフォローしていません");
+
+        // IDリストを作成
+        const targetIds = follows.map(f => f.following_id);
+        
+        // 共通表示関数を呼ぶ
+        await showUserListInModal(targetIds, "フォロー中", "さんがフォローしています");
+    }
+
+    // 2. フォロワーを見る
+    async function showFollowerList() {
+        if (!currentUser) return;
+
+        // フォロワーデータを取得
+        const { data: follows, error } = await api.from('follows').select('follower_id').eq('following_id', currentUser.id);
+        
+        if (error) return alert("データ取得失敗");
+        if (!follows || follows.length === 0) return alert("まだフォロワーはいません");
+
+        // IDリストを作成
+        const targetIds = follows.map(f => f.follower_id);
+        
+        // 共通表示関数を呼ぶ
+        await showUserListInModal(targetIds, "フォロワー", "さんがあなたをフォロー中");
+    }
+
+    // ★ ユーザーリスト表示の共通処理（いいね・フォロー・フォロワー兼用）
+    async function showUserListInModal(userIds, titleText, suffixText) {
+        // プロフィール情報を一括取得
+        const { data: profiles } = await api.from('profiles').select('id, display_name').in('id', userIds);
+        if (!profiles || profiles.length === 0) return alert("ユーザー情報の取得に失敗しました");
+
+        // モーダルのタイトル書き換え
+        const modalTitle = document.querySelector('#like-users-overlay h3');
+        if (modalTitle) {
+            modalTitle.innerHTML = `
+                <span class="material-icons" style="vertical-align:text-bottom; color:#fcaf17;">people</span> 
+                ${titleText} <span style="font-size:0.8em; color:#888; margin-left:5px;">(${profiles.length}名)</span>
+            `;
+        }
+
+        // リスト作成
+        const listHtml = profiles.map(p => {
+            const name = p.display_name || "名無し";
+            return `
+            <div class="like-user-row">
+                <span class="material-icons" style="color:#ccc; font-size:1.2em;">person</span>
+                <span onclick="closeLikeModal(); openAuthorPage('${p.id}')" style="cursor:pointer; text-decoration:underline; font-weight:bold; color:#333;">
+                    ${name}
+                </span>
+                </div>`;
+        }).join('');
+
+        // 表示
+        document.getElementById('like-users-list').innerHTML = listHtml;
+        document.getElementById('like-users-overlay').classList.remove('hidden');
+    }
     // ==========================================
     // 9. EVENT LISTENERS
     // ==========================================
