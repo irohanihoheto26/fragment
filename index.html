@@ -332,6 +332,29 @@
         from { opacity: 0; transform: scale(0.95); }
         to { opacity: 1; transform: scale(1); }
     }
+
+        /* ご要望フォーム用（いいねリストと同じスタイルを利用） */
+    #request-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 5500; /* かなり手前に */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        backdrop-filter: blur(2px);
+    }
+    /* 共通クラスがない場合のために定義 */
+    .like-modal-box {
+        background: #fff;
+        width: 90%;
+        max-width: 400px;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        animation: fadeIn 0.2s ease-out;
+    }
     </style>
 
     <style id="user-custom-style"></style>
@@ -347,7 +370,27 @@
         <div style="margin-bottom: 20px;">
             <span class="rule-link" onclick="openRules()">ルール（必読）</span>
             <span class="rule-link" onclick="openAboutPage()">このサイトについて</span>
+            <span class="rule-link" onclick="openRequestForm()" style="color:#2b9a8e;">ご意見・ご要望</span>
         </div>
+
+
+<div id="request-overlay" class="hidden">
+        <div class="like-modal-box">
+            <h3 style="margin-top:0; margin-bottom:10px; border-bottom:1px solid #eee; padding-bottom:10px; font-size:1.1em;">
+                <span class="material-icons" style="vertical-align:text-bottom; color:#2b9a8e;">mail_outline</span> 
+                運営へのご要望
+            </h3>
+            <p style="font-size:0.85em; color:#666;">
+                機能の希望やバグ報告など、お気軽にお送りください。<br>
+                ※個別の返信は行えませんのでご了承ください。
+            </p>
+            
+            <textarea id="request-content" rows="5" placeholder="例：〇〇機能が欲しいです！" style="margin-bottom:15px;"></textarea>
+            
+            <button onclick="sendRequest()" style="background:#2b9a8e; color:#fff; border:none; margin-bottom:10px;">送信する</button>
+            <button onclick="closeRequestForm()" style="background:#eee; color:#333; border:none; width:100%;">閉じる</button>
+        </div>
+    </div>
         
         <input type="text" style="display:none" aria-hidden="true">
         <input type="search" id="search-input" class="search-box-side" placeholder="検索..." oninput="getList()" autocomplete="off">
@@ -1969,6 +2012,40 @@
         else stickyEl.classList.remove('nav-hidden');
         lastScrollTop = st;
     }, { passive: true });
+
+    // --- ご意見・ご要望フォーム機能 ---
+
+    // フォームを開く
+    function openRequestForm() {
+        document.getElementById('request-content').value = ""; // 中身をリセット
+        document.getElementById('request-overlay').classList.remove('hidden');
+    }
+
+    // フォームを閉じる
+    function closeRequestForm() {
+        document.getElementById('request-overlay').classList.add('hidden');
+    }
+
+    // 要望を送信する
+    async function sendRequest() {
+        const content = document.getElementById('request-content').value.trim();
+        if (!content) return alert("内容を入力してください");
+
+        // ログインしてたらIDを入れる、してなければnull（ゲスト）
+        const userId = currentUser ? currentUser.id : null;
+
+        const { error } = await api.from('site_requests').insert({
+            user_id: userId,
+            content: content
+        });
+
+        if (error) {
+            alert("送信エラー: " + error.message);
+        } else {
+            alert("送信しました！ご意見ありがとうございます。");
+            closeRequestForm();
+        }
+    }
 </script>   
 
     <div id="like-users-overlay" class="hidden">
