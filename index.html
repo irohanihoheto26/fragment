@@ -1612,35 +1612,141 @@
         await api.from('notifications').update({ is_read: true }).eq('target_user_id', currentUser.id);
         document.getElementById('notification-banner').classList.add('hidden');
     }
+    // 作者ページを開く（シリーズまとめ表示対応版）
     async function openAuthorPage(authorId) {
         const overlay = document.getElementById('author-page-overlay');
         const worksEl = document.getElementById('author-page-works');
         const nameEl = document.getElementById('author-page-name');
         const bioEl = document.getElementById('author-page-bio');
         const styleEl = document.getElementById('user-custom-style');
+        
         if (!overlay || !worksEl) return;
+
+        // 1. プロフィール取得
         const { data: prof } = await api.from('profiles').select('*').eq('id', authorId).maybeSingle();
-        if (!prof) return;
+        if (!prof) return alert("ユーザーが見つかりません");
+
+        // デザイン反映
         const fullCode = prof.custom_css || "";
         const cssMatch = fullCode.match(/<style>([\s\S]*?)<\/style>/);
-        if (styleEl) styleEl.innerHTML = cssMatch ? cssMatch[1] : fullCode;
+        if (styleEl) styleEl.innerHTML = cssMatch ? cssMatch[1] : fullCode; // styleタグの中身だけ適用
         bioEl.innerHTML = fullCode.replace(/<style>[\s\S]*?<\/style>/, "") || prof.bio || "";
         nameEl.innerText = prof.display_name;
-        worksEl.innerHTML = "作品を読み込み中...";
+        
+        worksEl.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">作品データを読み込み中...</div>';
         overlay.style.display = 'block';
-        closeReader();
-        const { data: novels } = await api.from('novels').select('*').eq('author_id', authorId).eq('is_private', false).order('created_at', { ascending: false });
+        
+        // Readerが開いていたら閉じる
+        if(typeof closeReader === 'function') closeReader();
+
+        // 2. データ取得（作品とシリーズを両方取る）
+        // 作品（公開済みのみ）
+        const { data: novels } = await api.from('novels')
+            .select('*')
+            .eq('author_id', authorId)
+            .eq('is_private', false)
+            .order('created_at', { ascending: false });
+
+        // シリーズ
+        const { data: allSeries } = await api.from('series')
+            .select('*')
+            .eq('author_id', authorId);
+
+        if (!novels || novels.length === 0) {
+            worksEl.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">公開作品はありません</div>';
+            return;
+        }
+
+        // 3. データの整理（短編とシリーズを混ぜて並べ替える）
+        let displayItems = [];
+
+        // A. 短編（シリーズIDがない作品）をリストに追加
+        const shortStories = novels.filter(n => !n.series_id);
+        shortStories.forEach(n => {
+            displayItems.push({
+                type: 'novel',
+                date: new Date(n.created_at), // 並び替え用
+                data: n
+            });
+        });
+
+        // B. シリーズをリストに追加
+        if (allSeries) {
+            allSeries.forEach(s => {
+                // このシリーズに含まれる作品を抽出
+                const episodes = novels.filter(n => n.series_id === s.id);
+                
+                // 作品が1つ以上ある場合のみ表示（空のシリーズは出さない）
+                if (episodes.length > 0) {
+                    // 最新話の日付を探す
+                    const latestEpisode = episodes.reduce((a, b) => new Date(a.created_at) > new Date(b.created_at) ? a : b);
+                    const totalChars = episodes.reduce((sum, n) => sum + (n.content || "").length, 0);
+
+                    displayItems.push({
+                        type: 'series',
+                        date: new Date(latestEpisode.created_at), // 最新話の日付で並べる
+                        data: s,
+                        stats: {
+                            count: episodes.length,
+                            chars: totalChars,
+                            last_title: latestEpisode.title // 最新話タイトルも出せるように
+                        }
+                    });
+                }
+            });
+        }
+
+        // 4. 新しい順にソート
+        displayItems.sort((a, b) => b.date - a.date);
+
+        // 5. HTML生成
+        // カスタムエリアがあるかチェック（ユーザーがデザインコード内で id="custom-works-area" を作っている場合）
         const customArea = document.getElementById('custom-works-area');
         const targetEl = customArea || worksEl;
-        targetEl.innerHTML = (novels || []).map(n => {
-            const r18Badge = n.is_r18 ? `<span class="r18-badge">R18</span>` : "";
-            return `<div class="novel-row"><div class="novel-info"><span class="novel-title" onclick="openReader('${n.id}')" style="cursor:pointer; position:relative; z-index:4000;">${n.title}</span><div style="display: inline-flex; align-items: center; gap: 8px; margin-left: 10px;"><span class="count-badge">${(n.content || "").length.toLocaleString()}文字</span>${r18Badge}</div></div></div>`;
-        }).join('') || "公開作品はありません";
+
+        targetEl.innerHTML = displayItems.map(item => {
+            if (item.type === 'series') {
+                // --- シリーズの表示 ---
+                const s = item.data;
+                return `
+                <div class="novel-row" onclick="openSeriesPage('${s.id}')" style="cursor:pointer; background:#fdfdfd;">
+                    <div class="novel-info">
+                        <div style="margin-bottom:5px;">
+                            <span style="background:#333; color:#fff; font-size:0.7em; padding:2px 6px; border-radius:2px; font-weight:bold;">SERIES</span>
+                            <span style="font-size:0.8em; color:#888; margin-left:5px;">全${item.stats.count}話</span>
+                        </div>
+                        <span class="novel-title" style="font-size:1.15em;">${s.title}</span>
+                        <div style="font-size:0.85em; color:#666; margin-top:5px;">
+                            <span class="material-icons" style="font-size:1em; vertical-align:text-bottom;">history</span> 最新: ${item.stats.last_title}
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size:0.85em; color:#999;">
+                        <span class="material-icons" style="font-size:1.1em;">library_books</span>
+                        ${item.stats.chars.toLocaleString()}文字
+                    </div>
+                </div>`;
+            } else {
+                // --- 短編（通常作品）の表示 ---
+                const n = item.data;
+                const r18Badge = n.is_r18 ? `<span class="r18-badge">R18</span>` : "";
+                return `
+                <div class="novel-row">
+                    <div class="novel-info">
+                        <div style="margin-bottom:5px;">
+                            <span style="background:#eee; color:#555; font-size:0.7em; padding:2px 6px; border-radius:2px;">SHORT</span>
+                        </div>
+                        <span class="novel-title" onclick="openReader('${n.id}')" style="cursor:pointer;">${n.title}</span>
+                        ${r18Badge}
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px; font-size:0.85em; color:#999;">
+                        ${n.content.length.toLocaleString()}文字
+                    </div>
+                </div>`;
+            }
+        }).join('');
+
+        // カスタムエリアを使った場合は、デフォルトの表示場所を空にする
         if (customArea && customArea !== worksEl) worksEl.innerHTML = "";
-    }
-    function closeAuthorPage() {
-        document.getElementById('author-page-overlay').style.display = 'none';
-        document.getElementById('user-custom-style').innerHTML = "";
     }
 
     // ==========================================
