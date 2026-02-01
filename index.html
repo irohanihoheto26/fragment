@@ -293,6 +293,45 @@
     .footer-logo:hover {
         color: var(--main-color); /* ホバーでオレンジ */
     }
+
+        /* いいねユーザーモーダルのデザイン */
+    #like-users-overlay {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.4); /* 背景を少し暗く */
+        z-index: 5000; /* 最前面に表示 */
+        display: flex;
+        align-items: center;     /* 上下中央 */
+        justify-content: center; /* 左右中央 */
+        backdrop-filter: blur(2px); /* 背景を少しぼかす */
+    }
+    
+    .like-modal-box {
+        background: #fff;
+        width: 90%;
+        max-width: 400px;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        animation: fadeIn 0.2s ease-out;
+    }
+    
+    /* ユーザーリストの行 */
+    .like-user-row {
+        padding: 10px;
+        border-bottom: 1px dashed #eee;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .like-user-row:last-child { border-bottom: none; }
+
+    /* ふわっと出るアニメーション */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: scale(0.95); }
+        to { opacity: 1; transform: scale(1); }
+    }
     </style>
 
     <style id="user-custom-style"></style>
@@ -1867,26 +1906,44 @@
     }
 
     // いいねしてくれた人を表示する関数
+    // いいねしてくれた人を表示する関数（モーダル版）
     async function showWhoLiked(novelId) {
-        // 1. まず「いいね」のデータを取得
+        // 1. データを取得
         const { data: likes, error } = await api.from('likes').select('user_id').eq('novel_id', novelId);
         
         if (error) return alert("データ取得に失敗しました");
         if (!likes || likes.length === 0) return alert("まだ「いいね」はありません。");
 
-        // 2. ユーザーIDのリストを作る
+        // 2. ユーザー情報を取得
         const userIds = likes.map(item => item.user_id);
-
-        // 3. プロフィール情報（名前）を一括取得
-        const { data: profiles } = await api.from('profiles').select('display_name').in('id', userIds);
+        const { data: profiles } = await api.from('profiles').select('id, display_name').in('id', userIds);
         
         if (!profiles || profiles.length === 0) return alert("ユーザー情報の取得に失敗しました");
 
-        // 4. 名前をリストにして表示（シンプルなアラート使用）
-        const names = profiles.map(p => "・ " + (p.display_name || "名無し")).join('\n');
-        
-        alert("【いいねしてくれた人】\n\n" + names);
+        // 3. HTMLを作成（ここがおしゃれポイント）
+        const listHtml = profiles.map(p => {
+            const name = p.display_name || "名無し";
+            // 名前をクリックすると、その人のページへ飛ぶようにします
+            return `
+            <div class="like-user-row">
+                <span class="material-icons" style="color:#ccc; font-size:1.2em;">person</span>
+                <span onclick="closeLikeModal(); openAuthorPage('${p.id}')" style="cursor:pointer; text-decoration:underline; font-weight:bold; color:#333;">
+                    ${name}
+                </span>
+                <span style="font-size:0.8em; color:#888;">さんがいいねしました</span>
+            </div>`;
+        }).join('');
+
+        // 4. 画面にセットして表示
+        document.getElementById('like-users-list').innerHTML = listHtml;
+        document.getElementById('like-users-overlay').classList.remove('hidden');
     }
+
+    // モーダルを閉じる関数
+    function closeLikeModal() {
+        document.getElementById('like-users-overlay').classList.add('hidden');
+    }
+    
     // ==========================================
     // 9. EVENT LISTENERS
     // ==========================================
@@ -1912,6 +1969,21 @@
         else stickyEl.classList.remove('nav-hidden');
         lastScrollTop = st;
     }, { passive: true });
-</script>    
+</script>   
+
+    <div id="like-users-overlay" class="hidden">
+        <div class="like-modal-box">
+            <h3 style="margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px; font-size:1.1em;">
+                <span class="material-icons" style="vertical-align:text-bottom; color:#ff4d4d;">favorite</span> 
+                いいねした人
+            </h3>
+            
+            <div id="like-users-list" style="max-height: 300px; overflow-y: auto; margin: 20px 0;">
+                </div>
+            
+            <button onclick="closeLikeModal()" style="background:#eee; color:#333; border:none; width:100%;">閉じる</button>
+        </div>
+    </div>
+    
 </body>
 </html>
