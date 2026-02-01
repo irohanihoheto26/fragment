@@ -1568,26 +1568,48 @@
         if (authorEl) authorEl.innerText = "運営";
 
         bodyEl.innerHTML = `
-        <div class="rules-container" style="margin-top: -80px; line-height: 1.4; font-size: 0.95em;">
-            <p style="margin: -40px 0 -10px 0;">当サイトは個人による二次創作小説の展示・アーカイブを目的とした専用サイトです。</p>
-            <div class="rules-list-box" style="margin: -20px 0 -20px 0; padding-left: 1.2em;">
-                <div style="text-indent: -1.2em; margin-bottom: -20px;">・検索避けのため、<span style="color: #ff4d4d; font-weight: bold;">原作名をそのまま表示することは避けて</span>ください。</div>
-                <div style="text-indent: -1.2em; margin-bottom: -20px;">・<span style="border-bottom: 1px solid #000; font-weight: bold;">公序良俗に反する内容の投稿、無断転載、AI学習利用は固く禁止</span>いたします。</div>
-                <div style="text-indent: -1.2em; margin-bottom: -20px;">・<span style="background-color: #ffff00; padding: 0 2px;">R指定が必要な場合は必ず設定</span>を行ってください。</div>
-            </div>
-            <p style="margin: 10px 0 0 0;">ルールを守って、創作活動を楽しみましょう。</p>
-
-            <div style="background: #fffafa; border-left: 6px solid #ff4d4d; padding: 20px; border-radius: 4px; margin-bottom: 40px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
-                <h3 style="margin: 0 0 15px 0; color: #cc0000; font-size: 1.1em; display: flex; align-items: center; border-bottom: 1px dashed #ffcccc; padding-bottom: 10px;">
-                    <span class="material-icons" style="margin-right: 8px;">warning</span>
+        <div class="rules-container" style="margin-top: -60px; line-height: 1.6; font-size: 0.95em; text-align: left;">
+            
+            <div style="
+                max-width: 550px;
+                margin: 0 auto 40px auto; 
+                background: #fffafa; 
+                border-left: 5px solid #ff4d4d; /* 線も少し細く */
+                padding: 15px 20px; /* ★上下の余白をカットして高さを抑える */
+                border-radius: 4px; 
+                box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+            ">
+                <h3 style="
+                    margin: 0 0 8px 0; /* ★見出し下の隙間を詰める */
+                    color: #cc0000; 
+                    font-size: 1em; 
+                    display: flex; 
+                    align-items: center; 
+                    border-bottom: 1px dashed #ffcccc; 
+                    padding-bottom: 8px; /* ★線までの距離も詰める */
+                ">
+                    <span class="material-icons" style="margin-right: 6px; font-size: 1.1em;">warning</span>
                     ブラウザの「戻る」ボタンは使えません
                 </h3>
-                <p style="margin: 0; color: #555;">
-                    当サイトは特殊な仕組み（SPA）で作られているため、ブラウザの「戻る」ボタンを押すとサイトから退出してしまう場合があります。
+                <p style="margin: 0; color: #555; font-size: 0.9em;">
+                    当サイトは特殊な仕組み（SPA）のため、ブラウザの「戻る」を押すとサイトから退出してしまう場合があります。
                 </p>
-                <p style="margin: 10px 0 0 0; color: #cc0000; font-weight: bold;">
-                    画面を移動する際は、必ず画面内の<span style="background: #eee; padding: 2px 6px; border-radius: 4px; color: #333; border: 1px solid #ccc; font-size: 0.9em; vertical-align: middle;">← 戻る</span>ボタンを使用してください。
+                <p style="margin: 8px 0 0 0; color: #cc0000; font-weight: bold; font-size: 0.9em;">
+                    移動の際は、必ず<span style="background: #fff; padding: 1px 5px; border-radius: 3px; color: #333; border: 1px solid #ccc; font-size: 0.9em; vertical-align: middle; display:inline-block; margin:0 3px;">← 戻る</span>ボタンを使用してください。
                 </p>
+            </div>
+            <div style="max-width: 550px; margin: 0 auto;">
+                <h4 style="margin-bottom: 10px; border-left: 4px solid #fcaf17; padding-left: 10px; font-size:1.05em;">サイトの目的</h4>
+                <p style="margin-top: 0;">当サイトは個人による二次創作小説の展示・アーカイブを目的とした専用サイトです。</p>
+                
+                <h4 style="margin-bottom: 10px; border-left: 4px solid #fcaf17; padding-left: 10px; margin-top: 25px; font-size:1.05em;">禁止事項・ルール</h4>
+                <div class="rules-list-box" style="padding-left: 1em;">
+                    <div style="text-indent: -1em; margin-bottom: 8px;">・検索避けのため、<span style="color: #ff4d4d; font-weight: bold;">原作名をそのまま表示することは避けて</span>ください。</div>
+                    <div style="text-indent: -1em; margin-bottom: 8px;">・<span style="border-bottom: 1px solid #000; font-weight: bold;">公序良俗に反する内容の投稿、無断転載、AI学習利用は固く禁止</span>いたします。</div>
+                    <div style="text-indent: -1em; margin-bottom: 8px;">・<span style="background-color: #ffff00; padding: 0 2px;">R指定が必要な場合は必ず設定</span>を行ってください。</div>
+                </div>
+                
+                <p style="margin: 30px 0 20px 0; text-align: center; color: #888; font-size: 0.9em;">ルールを守って、創作活動を楽しみましょう。</p>
             </div>
         </div>`;
         document.getElementById('reader-overlay').style.display = 'block';
