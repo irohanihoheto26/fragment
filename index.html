@@ -1268,6 +1268,7 @@
     // 7. READER FUNCTIONS
     // ==========================================
     // 読書画面を開く（シリーズ優先デザイン対応版）
+    // 読書画面を開く（瞬時に一番上へ戻る機能付き）
     async function openReader(id) {
         currentReadingId = id;
         const bodyEl = document.getElementById('read-body');
@@ -1340,7 +1341,14 @@
 
         if (currentUser && n.author_id !== currentUser.id) checkFollowStatus(n.author_id);
 
-        document.getElementById('reader-overlay').style.display = 'block';
+        // ★★★ 修正箇所：ここを変更しました ★★★
+        const overlay = document.getElementById('reader-overlay');
+        overlay.style.display = 'block';
+        
+        // 瞬時に一番上へスクロールさせる（アニメーションなし）
+        overlay.scrollTop = 0;
+        lastScrollTop = 0; // スクロール判定用の変数もリセット
+        
         document.getElementById('reader-interactive-zone').classList.remove('hidden');
 
         // デザイン適用処理
