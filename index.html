@@ -273,6 +273,26 @@
         /* Utility */
         .hidden { display: none !important; }
         .rule-link { color: #666; text-decoration: underline; cursor: pointer; font-size: 0.85em; margin-bottom: 5px; display: block;}
+
+        /* --- 共通フッター --- */
+    .site-footer {
+        text-align: center;
+        margin-top: 60px;       /* 上との間隔 */
+        padding-top: 20px;
+        padding-bottom: 40px;
+        border-top: 1px solid #eee; /* 薄い区切り線 */
+    }
+    .footer-logo {
+        font-family: 'Dela Gothic One', sans-serif;
+        font-size: 1.5em;
+        color: #ddd;            /* 控えめなグレー */
+        cursor: pointer;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    .footer-logo:hover {
+        color: var(--main-color); /* ホバーでオレンジ */
+    }
     </style>
 
     <style id="user-custom-style"></style>
@@ -374,6 +394,11 @@
             <button id="tab-bookmark" class="tab-btn" onclick="switchTab('bookmark')">お気に入り</button>
         </div>
         <div id="list">読み込み中...</div>
+        <div class="site-footer">
+    <a onclick="location.reload()" class="footer-logo">Fragment</a>
+    <span style="color:#ccc; margin:0 10px; font-weight:100;">|</span>
+    <span style="font-size:0.75em; color:#aaa; letter-spacing:0.1em;">WEB NOVEL PLATFORM</span>
+</div>
     </main>
 
     <div id="series-overlay">
@@ -435,6 +460,11 @@
                      <button onclick="deleteSeries()" style="width:auto; background:none; border:none; color:red; text-decoration:underline; font-size:0.8em; padding:0; margin:0;">このシリーズを削除</button>
                 </div>
             </div>
+            <div class="site-footer">
+                <a onclick="location.reload()" class="footer-logo">Fragment</a>
+                <span style="color:#ccc; margin:0 10px; font-weight:100;">|</span>
+                <span style="font-size:0.75em; color:#aaa; letter-spacing:0.1em;">WEB NOVEL PLATFORM</span>
+            </div>
         </div>
     </div>
 
@@ -484,6 +514,11 @@
                         <p>コメントにはログインが必要です。</p>
                     </div>
                 </div>
+            </div>
+            <div class="site-footer">
+                <a onclick="location.reload()" class="footer-logo">Fragment</a>
+                <span style="color:#ccc; margin:0 10px; font-weight:100;">|</span>
+                <span style="font-size:0.75em; color:#aaa; letter-spacing:0.1em;">WEB NOVEL PLATFORM</span>
             </div>
         </div>
     </div>
@@ -542,6 +577,11 @@
                 <div id="author-page-bio"></div>
             </div>
             <div id="author-page-works" style="margin-top:30px;"></div>
+            <div class="site-footer">
+                <a onclick="location.reload()" class="footer-logo">Fragment</a>
+                <span style="color:#ccc; margin:0 10px; font-weight:100;">|</span>
+                <span style="font-size:0.75em; color:#aaa; letter-spacing:0.1em;">WEB NOVEL PLATFORM</span>
+            </div>
         </div>
     </div>
 
