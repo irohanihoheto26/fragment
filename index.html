@@ -971,7 +971,7 @@
 
         // --- 3. 表示制御とデータ注入 ---
         const editBtnHtml = (currentUser && currentUser.id === s.author_id) 
-            ? `<button onclick="toggleSeriesEditMode(true)" style="font-size:0.65em; padding:2px 8px; background:#f0f0f0; border:1px solid #ccc; border-radius:4px;">編集</button>` 
+            ? `<button onclick="toggleSeriesEditMode(true)" style="font-size:0.65em; padding:2px 8px; background:#f0f0f0; border:1px solid #ccc; border-radius:4px; width:auto; ">編集※作者にのみ表示されています。</button>` 
             : '';
         document.getElementById('series-action-bar').innerHTML = editBtnHtml;
 
