@@ -570,18 +570,15 @@
     .count-badge { font-size: 0.8em; color: #999; margin-left: 10px; }
     </style>`;
 
-    // ★ シリーズ用 初期デザインテンプレート（完全自動反映版）
-    // タイトルやあらすじの文字を削除し、IDだけをセットしています
-    const defaultSeriesTemplate = `/* 【シリーズページ テンプレート】 */
+    // ★ シリーズ用 初期デザインテンプレート（修正版）
+    const defaultSeriesTemplate = `
     <div class="series-header">
-        <div class="series-label">シリーズ</div>
-        
         <h1 id="custom-series-title" class="series-title"></h1>
         
         <div class="series-meta">
-            作者: <span id="series-author-display" class="author-name">...</span>
+            Written by <span id="series-author-display" class="author-name">...</span>
         </div>
-        
+
         <div id="custom-series-desc" class="series-desc"></div>
     </div>
     
@@ -591,29 +588,72 @@
     </div>
 
     <style>
-    /* 全体の枠組み */
-    .series-header { border-bottom: 2px solid #fcaf17; padding-bottom: 20px; margin-bottom: 30px; }
+    /* --- 基本レイアウト --- */
+    .series-header { border-bottom: 2px solid #ddd; padding-bottom: 20px; margin-bottom: 30px; text-align: center; }
     
-    /* 「シリーズ」ラベル */
-    .series-label { display: inline-block; background: #fcaf17; color: #fff; font-size: 0.8em; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: bold; }
+    /* タイトル */
+    .series-title { font-size: 1.8em; margin: 10px 0; color: #333; line-height: 1.4; min-height: 1.4em; }
 
-    /* タイトル（中身が入ると表示されます） */
-    .series-title { font-size: 1.6em; margin: 5px 0 10px 0; color: #333; line-height: 1.4; min-height: 1.4em; }
-
-    /* 情報エリア */
+    /* 作者名 */
     .series-meta { font-size: 0.9em; color: #666; margin-bottom: 15px; }
-    .author-name { color: #333; font-weight: bold; cursor: pointer; text-decoration: underline; }
+    .author-name { color: #000; font-weight: bold; cursor: pointer; text-decoration: underline; }
 
-    /* あらすじ（中身が入ると表示されます） */
-    .series-desc { color: #444; font-size: 0.95em; line-height: 1.8; background: #f9f9f9; padding: 15px; border-radius: 8px; white-space: pre-wrap; min-height: 20px; }
+    /* あらすじ */
+    .series-desc { 
+        text-align: left; /* あらすじは左寄せ */
+        color: #444; 
+        font-size: 0.95em; 
+        line-height: 1.8; 
+        background: #f9f9f9; 
+        padding: 15px; 
+        border-radius: 8px; 
+        white-space: pre-wrap; 
+        min-height: 20px; 
+    }
 
-    /* 目次 */
-    .toc-container { margin-top: 20px; }
-    .toc-heading { font-size: 1.2em; border-left: 4px solid #ccc; padding-left: 10px; margin-bottom: 15px; color: #333; }
+    /* --- 目次エリア --- */
+    .toc-container { margin-top: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }
+    .toc-heading { font-size: 1.1em; border-left: 4px solid #333; padding-left: 10px; margin-bottom: 15px; color: #333; }
 
-    /* リスト部分 */
-    .novel-row { border-bottom: 1px dashed #eee; padding: 12px 5px; transition: background 0.2s; }
+    /* リストの各行 */
+    .novel-row { 
+        border-bottom: 1px solid #eee; 
+        padding: 15px 5px; 
+        transition: background 0.2s;
+        display: flex; 
+        justify-content: space-between; 
+        align-items: baseline;
+    }
     .novel-row:hover { background: #fafafa; }
+
+    /* 作品タイトル */
+    .novel-title { font-weight: bold; font-size: 1.05em; color: #333; text-decoration: none; cursor: pointer; }
+    .novel-title:hover { text-decoration: underline; }
+
+    /* --- ★ここが表示設定エリア★ --- */
+    
+    /* 通し番号（不要なら display: none; にする） */
+    .series-list-number {
+        font-weight: bold; 
+        color: #ccc; 
+        font-family: sans-serif; 
+        font-size: 1.2em; 
+        margin-right: 15px;
+        min-width: 25px;
+        text-align: right;
+    }
+
+    /* 文字数（不要なら display: none; にする） */
+    .series-list-count {
+        font-size: 0.8em; 
+        color: #999; 
+        margin-left: 10px;
+        white-space: nowrap;
+    }
+
+    /* 下書き・R18バッジ */
+    .badge-draft { background:#e0f2ff; color:#004080; font-size:0.7em; padding:2px 6px; border-radius:4px; margin-left:5px; }
+    .badge-r18 { color:red; font-size:0.8em; margin-left:5px; font-weight:bold; }
     </style>`;
 
     // ==========================================
@@ -900,54 +940,55 @@
     }
 
     // シリーズ目次ページを開く
+    // シリーズ目次ページを開く（表示設定対応版）
     async function openSeriesPage(seriesId) {
         const overlay = document.getElementById('series-overlay');
         overlay.classList.remove('hidden');
         
-        // 編集エリアを閉じておく
         if (typeof toggleSeriesEditMode === 'function') toggleSeriesEditMode(false);
 
         const { data: s } = await api.from('series').select('*').eq('id', seriesId).single();
         if (!s) return alert("シリーズが見つかりません");
 
-        // ID保存
         currentOpenedSeriesId = s.id;
 
         const { data: p } = await api.from('profiles').select('display_name').eq('id', s.author_id).maybeSingle();
         const authorName = p ? p.display_name : "名無し";
 
-        // --- 1. デザインコードの反映 ---
+        // --- 1. デザイン反映 ---
         const styleTag = document.getElementById('series-dynamic-style');
         const customArea = document.getElementById('series-custom-html-area');
         const fullCode = s.custom_css || "";
         
-        // <style>タグの中身を取り出して反映
+        // CSSとHTMLを分離して適用
         const cssMatch = fullCode.match(/<style>([\s\S]*?)<\/style>/);
         if (styleTag) styleTag.innerHTML = cssMatch ? cssMatch[1] : ""; 
-        // HTML部分を反映（styleタグを除去して挿入）
         if (customArea) customArea.innerHTML = fullCode.replace(/<style>[\s\S]*?<\/style>/g, ""); 
 
-        // --- 2. 表示モードの判定（カスタムかデフォルトか） ---
-        // カスタムHTML内に、リストを表示するためのIDがあるかチェック
+        // --- 2. モード判定 ---
         const customWorksArea = document.getElementById('series-works-area');
         const isCustomMode = !!customWorksArea;
 
-        // --- 3. 情報の流し込みと表示制御 ---
-        
-        // ★ 編集ボタン（常に右上に表示）
+        // --- 3. 表示制御とデータ注入 ---
         const editBtnHtml = (currentUser && currentUser.id === s.author_id) 
-            ? `<button onclick="toggleSeriesEditMode(true)" style="font-size:0.6em; padding:2px 6px; background:#f0f0f0; border:0px solid #ccc; border-radius:4px;">編集</button>` 
+            ? `<button onclick="toggleSeriesEditMode(true)" style="font-size:0.65em; padding:2px 8px; background:#f0f0f0; border:1px solid #ccc; border-radius:4px;">編集</button>` 
             : '';
         document.getElementById('series-action-bar').innerHTML = editBtnHtml;
 
         if (isCustomMode) {
-            // ■ カスタムモードの場合：デフォルト要素を隠す・空にする
-            document.getElementById('default-series-header').style.display = 'none'; // ヘッダー全体を隠す
-            document.getElementById('default-toc-heading').style.display = 'none';   // 「目次」見出しを隠す
-            document.getElementById('series-episode-list').style.display = 'none';   // デフォルトリストを隠す
+            // カスタムモード：デフォルト表示を隠す
+            document.getElementById('default-series-header').style.display = 'none';
+            document.getElementById('default-toc-heading').style.display = 'none';
+            document.getElementById('series-episode-list').style.display = 'none';
             
-            // カスタム側のタグに情報を注入（作者名など）
+            // データ注入
             setTimeout(() => {
+                 const cTitle = document.getElementById('custom-series-title');
+                 if(cTitle) cTitle.innerText = s.title;
+
+                 const cDesc = document.getElementById('custom-series-desc');
+                 if(cDesc) cDesc.innerText = s.description || "";
+
                  const authorDisp = document.getElementById('series-author-display');
                  if(authorDisp) {
                      authorDisp.innerText = authorName;
@@ -956,23 +997,22 @@
             }, 50);
 
         } else {
-            // ■ デフォルトモードの場合：デフォルト要素を表示・入力
+            // デフォルトモード
             document.getElementById('default-series-header').style.display = 'block';
             document.getElementById('default-toc-heading').style.display = 'block';
             document.getElementById('series-episode-list').style.display = 'block';
 
             document.getElementById('series-page-title').innerText = s.title;
-            document.getElementById('series-page-desc').innerText = s.description || "あらすじはありません";
+            document.getElementById('series-page-desc').innerText = s.description || "";
             document.getElementById('series-author-area').innerHTML = `作者: <strong onclick="openAuthorPage('${s.author_id}')" style="cursor:pointer; text-decoration:underline;">${authorName}</strong>`;
         }
 
-        // 編集フォーム初期値セット（裏側）
+        // 編集フォーム初期値セット
         if (document.getElementById('edit-series-title')) document.getElementById('edit-series-title').value = s.title;
         if (document.getElementById('edit-series-desc')) document.getElementById('edit-series-desc').value = s.description || "";
         if (document.getElementById('edit-series-css')) document.getElementById('edit-series-css').value = s.custom_css || "";
 
-
-        // --- 4. エピソード一覧の取得と描画 ---
+        // --- 4. リスト取得と描画 ---
         let query = api.from('novels')
             .select('id, title, episode_number, is_r18, is_private, created_at, content')
             .eq('series_id', seriesId)
@@ -983,27 +1023,28 @@
         }
 
         const { data: episodes } = await query;
-
-        // 描画先ターゲット決定（カスタムがあればそっち、なければデフォルト）
         const targetList = isCustomMode ? customWorksArea : document.getElementById('series-episode-list');
         
         if (episodes && episodes.length > 0) {
             targetList.innerHTML = episodes.map(e => {
-                const draftBadge = e.is_private ? '<span style="background:#e0f2ff; color:#004080; font-size:0.7em; padding:2px 6px; border-radius:4px; margin-left:5px;">下書き</span>' : '';
-                const r18Badge = e.is_r18 ? '<span style="color:red; font-size:0.8em; margin-left:5px;">(R18)</span>' : '';
-
-                // 文字数カウント
+                const draftBadge = e.is_private ? '<span class="badge-draft">下書き</span>' : '';
+                const r18Badge = e.is_r18 ? '<span class="badge-r18">(R18)</span>' : '';
                 const charCount = (e.content || "").length.toLocaleString();
 
+                // ★ここを変更：各要素にクラスをつけて、CSSで制御可能にしました
                 return `
-                <div class="novel-row" style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="flex:1;">
-                         <span style="font-weight:bold; font-family:'Antonio', sans-serif; font-size:1.2em; width:30px; display:inline-block; text-align:right; margin-right:10px;">${e.episode_number}</span>
-                         <span onclick="openReader('${e.id}')" class="novel-title" style="cursor:pointer; font-weight:bold; font-size:1.05em;">${e.title}</span>
-                         ${draftBadge} ${r18Badge}
+                <div class="novel-row">
+                    <div style="display:flex; align-items:baseline; flex:1;">
+                         <span class="series-list-number">${e.episode_number}</span>
+                         
+                         <div>
+                             <span onclick="openReader('${e.id}')" class="novel-title">${e.title}</span>
+                             ${draftBadge} ${r18Badge}
+                         </div>
                     </div>
-                    <span style="font-size:0.8em; color:#999; display:flex; align-items:center; flex-shrink:0;">
-                       <span class="material-icons" style="font-size:1.1em; margin-right:2px;">description</span>
+                    
+                    <span class="series-list-count">
+                       <span class="material-icons" style="font-size:1.1em; vertical-align:text-bottom;">description</span>
                        ${charCount}
                     </span>
                 </div>`;
