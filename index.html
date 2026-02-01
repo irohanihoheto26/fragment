@@ -557,7 +557,7 @@
     </style>`;
 
     // 初期デザインテンプレート (Author Page)
-    const defaultAuthorTemplate = `/* 【ベーステンプレート】 */
+    const defaultAuthorTemplate = `
     <h1 class="default-title">サイトタイトル</h1>
     <div class="default-bio">ここに自己紹介を入力してください。</div>
     <div id="custom-works-area"></div>
@@ -1749,6 +1749,12 @@
         if (customArea && customArea !== worksEl) worksEl.innerHTML = "";
     }
 
+    // 作者ページを閉じる関数（これがないと戻れません）
+    function closeAuthorPage() {
+        document.getElementById('author-page-overlay').style.display = 'none';
+        document.getElementById('user-custom-style').innerHTML = ""; 
+    }
+    
     // ==========================================
     // 9. EVENT LISTENERS
     // ==========================================
