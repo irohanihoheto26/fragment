@@ -570,15 +570,19 @@
     .count-badge { font-size: 0.8em; color: #999; margin-left: 10px; }
     </style>`;
 
-    // ★ シリーズ用 初期デザインテンプレート（ID埋め込み・リッチ版）
+    // ★ シリーズ用 初期デザインテンプレート（完全自動反映版）
+    // タイトルやあらすじの文字を削除し、IDだけをセットしています
     const defaultSeriesTemplate = `/* 【シリーズページ テンプレート】 */
     <div class="series-header">
         <div class="series-label">シリーズ</div>
-        <h1 class="series-title">シリーズタイトル</h1>
+        
+        <h1 id="custom-series-title" class="series-title"></h1>
+        
         <div class="series-meta">
             作者: <span id="series-author-display" class="author-name">...</span>
         </div>
-        <div class="series-desc">ここにシリーズのあらすじや説明を入力してください。<br>全○話完結予定です。</div>
+        
+        <div id="custom-series-desc" class="series-desc"></div>
     </div>
     
     <div class="toc-container">
@@ -587,14 +591,27 @@
     </div>
 
     <style>
+    /* 全体の枠組み */
     .series-header { border-bottom: 2px solid #fcaf17; padding-bottom: 20px; margin-bottom: 30px; }
+    
+    /* 「シリーズ」ラベル */
     .series-label { display: inline-block; background: #fcaf17; color: #fff; font-size: 0.8em; padding: 2px 8px; border-radius: 4px; margin-bottom: 5px; font-weight: bold; }
-    .series-title { font-size: 1.6em; margin: 5px 0 10px 0; color: #333; line-height: 1.4; }
+
+    /* タイトル（中身が入ると表示されます） */
+    .series-title { font-size: 1.6em; margin: 5px 0 10px 0; color: #333; line-height: 1.4; min-height: 1.4em; }
+
+    /* 情報エリア */
     .series-meta { font-size: 0.9em; color: #666; margin-bottom: 15px; }
     .author-name { color: #333; font-weight: bold; cursor: pointer; text-decoration: underline; }
-    .series-desc { color: #444; font-size: 0.95em; line-height: 1.8; background: #f9f9f9; padding: 15px; border-radius: 8px; }
+
+    /* あらすじ（中身が入ると表示されます） */
+    .series-desc { color: #444; font-size: 0.95em; line-height: 1.8; background: #f9f9f9; padding: 15px; border-radius: 8px; white-space: pre-wrap; min-height: 20px; }
+
+    /* 目次 */
     .toc-container { margin-top: 20px; }
     .toc-heading { font-size: 1.2em; border-left: 4px solid #ccc; padding-left: 10px; margin-bottom: 15px; color: #333; }
+
+    /* リスト部分 */
     .novel-row { border-bottom: 1px dashed #eee; padding: 12px 5px; transition: background 0.2s; }
     .novel-row:hover { background: #fafafa; }
     </style>`;
