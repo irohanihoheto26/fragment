@@ -892,6 +892,7 @@
     // ==========================================
     // 6. EDITOR
     // ==========================================
+    // 執筆管理（自分の作品）の読み込み（いいね詳細対応版）
     async function loadUserContent() {
         if (!currentUser) return;
 
@@ -927,7 +928,6 @@
         document.getElementById('my-works-list').innerHTML = allMyNovels.map(n => {
             const badge = n.is_private ? '<span class="draft-badge">下書き</span>' : (n.is_r18 ? '<span class="r18-badge">R18</span>' : '');
             
-            // ★ Google Iconを使用
             const seriesLink = n.series_title 
                 ? `<div style="width:100%; margin-bottom:4px;"><span onclick="openSeriesPage('${n.series_id}')" style="background:#efefef; color:#555; font-size:0.75em; padding:2px 6px; border-radius:4px; cursor:pointer;"><span class="material-icons" style="font-size:1.2em; vertical-align:text-bottom;">library_books</span> ${n.series_title}</span></div>` 
                 : '';
@@ -940,10 +940,12 @@
                     ${badge}
                     
                     <span class="novel-stats">
-                        <span class="stat-item">
-                            <span class="material-icons" style="font-size:1.1em; margin-right:2px; color:#ff4d4d; vertical-align:middle;">favorite_border</span> ${n.like_count}
+                        <span class="stat-item" onclick="showWhoLiked('${n.id}')" style="cursor:pointer; display:inline-flex; align-items:center; transition:0.2s;" title="いいねした人を確認">
+                            <span class="material-icons" style="font-size:1.1em; margin-right:2px; color:#ff4d4d; vertical-align:middle;">favorite_border</span> 
+                            <span style="text-decoration:underline; font-weight:bold;">${n.like_count}</span>
                         </span>
-                        <span class="stat-item">
+                        
+                        <span class="stat-item" style="margin-left:15px;">
                             <span class="material-icons" style="font-size:1.1em; margin-right:2px; color:#888; vertical-align:middle;">chat_bubble_outline</span> ${n.comment_count}
                         </span>
                     </span>
@@ -1864,6 +1866,27 @@
         document.getElementById('user-custom-style').innerHTML = ""; 
     }
 
+    // いいねしてくれた人を表示する関数
+    async function showWhoLiked(novelId) {
+        // 1. まず「いいね」のデータを取得
+        const { data: likes, error } = await api.from('likes').select('user_id').eq('novel_id', novelId);
+        
+        if (error) return alert("データ取得に失敗しました");
+        if (!likes || likes.length === 0) return alert("まだ「いいね」はありません。");
+
+        // 2. ユーザーIDのリストを作る
+        const userIds = likes.map(item => item.user_id);
+
+        // 3. プロフィール情報（名前）を一括取得
+        const { data: profiles } = await api.from('profiles').select('display_name').in('id', userIds);
+        
+        if (!profiles || profiles.length === 0) return alert("ユーザー情報の取得に失敗しました");
+
+        // 4. 名前をリストにして表示（シンプルなアラート使用）
+        const names = profiles.map(p => "・ " + (p.display_name || "名無し")).join('\n');
+        
+        alert("【いいねしてくれた人】\n\n" + names);
+    }
     // ==========================================
     // 9. EVENT LISTENERS
     // ==========================================
