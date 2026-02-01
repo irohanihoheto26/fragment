@@ -944,11 +944,13 @@
         document.getElementById('editor-overlay').style.display = 'block';
     }
 
-    // シリーズ目次ページを開く
-    // シリーズ目次ページを開く（表示設定対応版）
+    // シリーズ目次ページを開く（修正版：確実に表示させる）
     async function openSeriesPage(seriesId) {
         const overlay = document.getElementById('series-overlay');
-        overlay.classList.remove('hidden');
+        
+        // ★修正点：ここを style.display = 'block' に変更
+        overlay.style.display = 'block'; 
+        overlay.classList.remove('hidden'); // 念のためclassも削除
         
         if (typeof toggleSeriesEditMode === 'function') toggleSeriesEditMode(false);
 
@@ -965,7 +967,6 @@
         const customArea = document.getElementById('series-custom-html-area');
         const fullCode = s.custom_css || "";
         
-        // CSSとHTMLを分離して適用
         const cssMatch = fullCode.match(/<style>([\s\S]*?)<\/style>/);
         if (styleTag) styleTag.innerHTML = cssMatch ? cssMatch[1] : ""; 
         if (customArea) customArea.innerHTML = fullCode.replace(/<style>[\s\S]*?<\/style>/g, ""); 
@@ -975,8 +976,9 @@
         const isCustomMode = !!customWorksArea;
 
         // --- 3. 表示制御とデータ注入 ---
+        // 編集ボタン（作者本人のみ）
         const editBtnHtml = (currentUser && currentUser.id === s.author_id) 
-            ? `<button onclick="toggleSeriesEditMode(true)" style="font-size:0.65em; padding:2px 8px; background:#f0f0f0; border:1px solid #ccc; border-radius:4px; width:auto; ">編集※作者にのみ表示されています。</button>` 
+            ? `<button onclick="toggleSeriesEditMode(true)" style="font-size:0.8em; padding:4px 12px; background:#f0f0f0; border:1px solid #ccc; border-radius:4px; width:auto; cursor:pointer;">⚙ 編集</button>` 
             : '';
         document.getElementById('series-action-bar').innerHTML = editBtnHtml;
 
@@ -986,7 +988,7 @@
             document.getElementById('default-toc-heading').style.display = 'none';
             document.getElementById('series-episode-list').style.display = 'none';
             
-            // データ注入
+            // データ注入（少し待ってから実行）
             setTimeout(() => {
                  const cTitle = document.getElementById('custom-series-title');
                  if(cTitle) cTitle.innerText = s.title;
@@ -1002,7 +1004,7 @@
             }, 50);
 
         } else {
-            // デフォルトモード
+            // デフォルトモード：デフォルト表示を出す
             document.getElementById('default-series-header').style.display = 'block';
             document.getElementById('default-toc-heading').style.display = 'block';
             document.getElementById('series-episode-list').style.display = 'block';
@@ -1036,18 +1038,15 @@
                 const r18Badge = e.is_r18 ? '<span class="badge-r18">(R18)</span>' : '';
                 const charCount = (e.content || "").length.toLocaleString();
 
-                // ★ここを変更：各要素にクラスをつけて、CSSで制御可能にしました
                 return `
                 <div class="novel-row">
                     <div style="display:flex; align-items:baseline; flex:1;">
                          <span class="series-list-number">${e.episode_number}</span>
-                         
                          <div>
                              <span onclick="openReader('${e.id}')" class="novel-title">${e.title}</span>
                              ${draftBadge} ${r18Badge}
                          </div>
                     </div>
-                    
                     <span class="series-list-count">
                        <span class="material-icons" style="font-size:1.1em; vertical-align:text-bottom;">description</span>
                        ${charCount}
@@ -1057,6 +1056,17 @@
         } else {
             targetList.innerHTML = '<div style="padding:20px; color:#888;">エピソードがありません</div>';
         }
+    }
+
+    // シリーズ画面を閉じる（修正版）
+    function closeSeriesPage() {
+        const overlay = document.getElementById('series-overlay');
+        
+        // ★修正点：ここも style.display = 'none' に
+        overlay.style.display = 'none';
+        
+        document.getElementById('series-dynamic-style').innerHTML = ""; 
+        document.getElementById('series-custom-html-area').innerHTML = "";
     }
 
     // シリーズ編集モード切替
@@ -1122,12 +1132,6 @@
             closeSeriesPage();
             loadUserContent();
         }
-    }
-    
-    function closeSeriesPage() {
-        document.getElementById('series-overlay').classList.add('hidden');
-        document.getElementById('series-dynamic-style').innerHTML = ""; 
-        document.getElementById('series-custom-html-area').innerHTML = "";
     }
 
     async function doPost() {
