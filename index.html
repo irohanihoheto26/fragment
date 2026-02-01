@@ -400,21 +400,27 @@
             </div>
             <div id="series-edit-area" class="hidden" style="margin-top:20px; background:#f9f9f9; padding:20px; border-radius:8px;">
                 <h3>シリーズ情報の編集</h3>
+                
                 <label style="font-weight:bold; font-size:0.9em;">基本情報</label>
                 <input type="text" id="edit-series-title" placeholder="シリーズタイトル" style="margin-bottom:10px;">
                 <textarea id="edit-series-desc" placeholder="あらすじ（一覧ページなどに表示されます）" rows="3" style="margin-bottom:20px;"></textarea>
                 
-                <h4 style="margin-top:0; margin-bottom:5px;">デザインカスタマイズ (HTML/CSS)</h4>
-                
+                <h4 style="margin-top:0; margin-bottom:5px;">目次ページのデザイン (HTML/CSS)</h4>
                 <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:5px;">
                     <p style="font-size:0.8em; color:#666; margin:0; line-height:1.3;">
-                        ここに書いたコードがページ全体になります。<br>
-                        ※ <code>&lt;div id="series-works-area"&gt;&lt;/div&gt;</code> の場所に目次が出ます。
+                        ※ <code>&lt;div id="series-works-area"&gt;&lt;/div&gt;</code> の場所にリストが出ます。
                     </p>
                     <button type="button" onclick="resetSeriesTemplate()" style="width:auto; font-size:0.8em; padding:4px 10px; margin:0; background:#eee; border:1px solid #ccc;">初期デザインに戻す</button>
                 </div>
+                <textarea id="edit-series-css" style="width:100%; height:150px; font-family:monospace; font-size:0.9em; margin-bottom:20px;" placeholder="<style>...</style>..."></textarea>
 
-                <textarea id="edit-series-css" style="width:100%; height:200px; font-family:monospace; font-size:0.9em;" placeholder="<style>...</style>..."></textarea>
+                <div style="border-top:1px dashed #ccc; padding-top:15px; margin-top:15px;">
+                    <h4 style="margin-top:0; margin-bottom:5px;">このシリーズ専用の読書画面 (CSS)</h4>
+                    <p style="font-size:0.8em; color:#666; margin:0 0 5px 0;">
+                        ※ 入力すると、作者設定よりもこちらが優先されます。空欄なら作者設定が適用されます。
+                    </p>
+                    <textarea id="edit-series-reader-css" style="width:100%; height:100px; font-family:monospace; font-size:0.9em;" placeholder="#read-body { color: #333; ... }"></textarea>
+                </div>
                 
                 <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
                     <button class="btn-outline" onclick="toggleSeriesEditMode(false)" style="width:auto; margin:0;">キャンセル</button>
@@ -1070,6 +1076,7 @@
     }
 
     // シリーズ編集モード切替
+    // シリーズ編集モード切替（データ読み込み更新版）
     async function toggleSeriesEditMode(isEdit) {
         const viewArea = document.getElementById('series-view-area');
         const editArea = document.getElementById('series-edit-area');
@@ -1080,11 +1087,15 @@
 
             if (!currentOpenedSeriesId) return;
             
+            // 最新データを取得
             const { data: s } = await api.from('series').select('*').eq('id', currentOpenedSeriesId).single();
             if (s) {
                 document.getElementById('edit-series-title').value = s.title || "";
                 document.getElementById('edit-series-desc').value = s.description || "";
                 document.getElementById('edit-series-css').value = s.custom_css || defaultSeriesTemplate;
+                
+                // ★追加：リーダーCSSの読み込み
+                document.getElementById('edit-series-reader-css').value = s.reader_css || "";
             }
 
         } else {
@@ -1092,7 +1103,7 @@
             editArea.classList.add('hidden');
         }
     }
-
+    
     // シリーズ保存
     async function saveSeriesData() {
         if (!currentOpenedSeriesId) return;
@@ -1100,7 +1111,10 @@
         const updates = {
             title: document.getElementById('edit-series-title').value,
             description: document.getElementById('edit-series-desc').value,
-            custom_css: document.getElementById('edit-series-css').value
+            custom_css: document.getElementById('edit-series-css').value,
+            
+            // ★追加：リーダーCSSの保存
+            reader_css: document.getElementById('edit-series-reader-css').value
         };
 
         const { error } = await api.from('series').update(updates).eq('id', currentOpenedSeriesId);
@@ -1233,6 +1247,7 @@
     // ==========================================
     // 7. READER FUNCTIONS
     // ==========================================
+    // 読書画面を開く（シリーズ優先デザイン対応版）
     async function openReader(id) {
         currentReadingId = id;
         const bodyEl = document.getElementById('read-body');
@@ -1242,13 +1257,29 @@
         titleEl.style.textDecoration = "none";
         resetReaderUI();
         
+        // 1. 作品データの取得
         const { data: n, error } = await api.from('novels').select('*').eq('id', id).single();
         if(error || !n) return alert("作品が見つかりません");
 
         currentOpenedNovel = n;
+
+        // 2. 作者プロフィールの取得（デフォルトデザイン用）
         const { data: prof } = await api.from('profiles').select('display_name, reader_custom_code').eq('id', n.author_id).maybeSingle();
         const latestName = prof?.display_name || n.author_name;
 
+        // 3. 【重要】デザインコードの決定（シリーズ優先ロジック）
+        let appliedReaderCss = (prof && prof.reader_custom_code) ? prof.reader_custom_code : defaultReaderTemplate;
+
+        // シリーズに入っている場合、シリーズ情報を取得してCSSを確認
+        if (n.series_id) {
+            const { data: sData } = await api.from('series').select('reader_css').eq('id', n.series_id).maybeSingle();
+            // シリーズ専用CSSがあり、かつ空でなければ、それを優先して上書き
+            if (sData && sData.reader_css && sData.reader_css.trim() !== "") {
+                appliedReaderCss = sData.reader_css;
+            }
+        }
+
+        // --- 以下、表示処理 ---
         originalContent = n.content;
         titleEl.innerText = n.title;
         
@@ -1292,18 +1323,20 @@
         document.getElementById('reader-overlay').style.display = 'block';
         document.getElementById('reader-interactive-zone').classList.remove('hidden');
 
+        // デザイン適用処理
         const oldStyle = document.getElementById('dynamic-reader-style');
         if (oldStyle) oldStyle.remove();
 
         const styleTag = document.createElement('style'); 
         styleTag.id = 'dynamic-reader-style';
-        let customCode = (prof && prof.reader_custom_code) ? prof.reader_custom_code : defaultReaderTemplate;
         
         const resetHelper = `
             #reader-overlay, .overlay-content { background-color: transparent; }
             #reader-overlay .close-btn-style { /* background: #c0c0c0; color: #444; */ }
         `;
-        styleTag.textContent = resetHelper + customCode.replace(/<style>|<\/style>/g, '');
+        
+        // ここで、決定したCSS（appliedReaderCss）を適用
+        styleTag.textContent = resetHelper + appliedReaderCss.replace(/<style>|<\/style>/g, '');
         document.head.appendChild(styleTag);
 
         loadComments(id);
