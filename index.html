@@ -691,6 +691,18 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
+
+    // ★ セキュリティ対策：HTMLエスケープ関数
+    function escapeHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+    
     // ==========================================
     // 1. CONFIGURATION & GLOBALS
     // ==========================================
@@ -997,7 +1009,6 @@
     // 6. EDITOR
     // ==========================================
     // 執筆管理（自分の作品）の読み込み（いいね詳細対応版）
-    // 執筆管理（自分の作品）の読み込み
     async function loadUserContent() {
         if (!currentUser) return;
 
@@ -1033,22 +1044,27 @@
         document.getElementById('my-works-list').innerHTML = allMyNovels.map(n => {
             const badge = n.is_private ? '<span class="draft-badge">下書き</span>' : (n.is_r18 ? '<span class="r18-badge">R18</span>' : '');
             
+            // ★ エスケープ処理を適用
+            const safeTitle = escapeHtml(n.title);
+            const safeSeriesTitle = escapeHtml(n.series_title);
+
             const seriesLink = n.series_title 
-                ? `<div style="width:100%; margin-bottom:4px;"><span onclick="openSeriesPage('${n.series_id}')" style="background:#efefef; color:#555; font-size:0.75em; padding:2px 6px; border-radius:4px; cursor:pointer;"><span class="material-icons" style="font-size:1.2em; vertical-align:text-bottom;">library_books</span> ${n.series_title}</span></div>` 
+                ? `<div style="width:100%; margin-bottom:4px;"><span onclick="openSeriesPage('${n.series_id}')" style="background:#efefef; color:#555; font-size:0.75em; padding:2px 6px; border-radius:4px; cursor:pointer;"><span class="material-icons" style="font-size:1.2em; vertical-align:text-bottom;">library_books</span> ${safeSeriesTitle}</span></div>` 
                 : '';
 
             return `
             <div class="novel-row">
                 <div class="novel-info">
                     ${seriesLink}
-                    <span class="novel-title" onclick="openReader('${n.id}')">${n.title}</span> 
+                    <span class="novel-title" onclick="openReader('${n.id}')">${safeTitle}</span> 
                     ${badge}
                     
                     <span class="novel-stats">
                         <span class="stat-item" onclick="showWhoLiked('${n.id}')" style="cursor:pointer; transition:0.2s;" title="いいねした人を確認">
-                            <span class="material-icons" style="font-size:1.1em; margin-right:2px; color:#ff4d4d; vertical-align:middle; position:relative; vertical-align: middle;">favorite_border</span> 
+                            <span class="material-icons" style="font-size:1.1em; margin-right:2px; color:#ff4d4d; vertical-align:middle;">favorite_border</span> 
                             <span style="text-decoration:underline; font-weight:bold;">${n.like_count}</span>
                         </span>
+                        
                         <span class="stat-item" style="margin-left:15px;">
                             <span class="material-icons" style="font-size:1.1em; margin-right:2px; color:#888; vertical-align:middle;">chat_bubble_outline</span> ${n.comment_count}
                         </span>
@@ -1057,7 +1073,11 @@
                 
                 <div style="white-space: nowrap; margin-left: 10px;">
                     <span style="cursor:pointer; text-decoration:underline; font-size:0.8em; margin-right:10px;" onclick="openEditor('${n.id}')">[編集]</span>
-                    <span style="cursor:pointer; text-decoration:underline; font-size:0.8em; color:red;" onclick="deleteNovel('${n.id}', '${n.title}')">[削除]</span>
+                    
+                    <span style="cursor:pointer; text-decoration:underline; font-size:0.8em; color:red;" 
+                          data-id="${n.id}" 
+                          data-title="${safeTitle}" 
+                          onclick="deleteNovel(this.dataset.id, this.dataset.title)">[削除]</span>
                 </div>
             </div>`;
         }).join('') || '<div style="padding:20px; color:#888;">作品はありません</div>';
@@ -1372,10 +1392,32 @@
         }
     }
 
+    // 小説の削除（関連データも削除する強化版）
     async function deleteNovel(id, title) {
-        if (!confirm(`作品「${title}」を削除しますか？`)) return;
-        await api.from('novels').delete().eq('id', id);
-        location.reload();
+        if (!confirm(`作品「${title}」を削除しますか？\n（この操作は取り消せません）`)) return;
+
+        try {
+            // 1. 関連するデータ（いいね、コメント、ブックマーク）を先に消す
+            // ※ Supabase側で "ON DELETE CASCADE" 設定がされていれば不要ですが、念のためJS側でも行います。
+            await api.from('likes').delete().eq('novel_id', id);
+            await api.from('comments').delete().eq('novel_id', id);
+            await api.from('bookmarks').delete().eq('novel_id', id);
+            await api.from('notifications').delete().eq('novel_id', id);
+
+            // 2. 本体を削除
+            const { error } = await api.from('novels').delete().eq('id', id);
+
+            if (error) {
+                console.error(error);
+                alert("削除に失敗しました: " + error.message);
+            } else {
+                alert("削除しました。");
+                location.reload();
+            }
+        } catch (err) {
+            console.error(err);
+            alert("予期せぬエラーが発生しました。");
+        }
     }
 
     function closeEditor() { document.getElementById('editor-overlay').style.display = 'none'; }
@@ -1720,28 +1762,58 @@
         checkBookmarkStatus(safeId);
     }
     
+    // コメント読み込み関数（セキュリティ修正版）
     async function loadComments(id) {
         const { data: comments, error } = await api.from('comments').select('*').eq('novel_id', id).order('created_at', {ascending: true});
-        if (error) { document.getElementById('comment-list').innerHTML = "エラーが発生しました"; return; }
+        
+        if (error) { 
+            document.getElementById('comment-list').innerHTML = "エラーが発生しました"; 
+            return; 
+        }
+        
         const listEl = document.getElementById('comment-list');
-        if (!comments || comments.length === 0) { listEl.innerHTML = "コメントはありません"; return; }
+        
+        if (!comments || comments.length === 0) { 
+            listEl.innerHTML = "コメントはありません"; 
+            return; 
+        }
+
+        // ユーザー名を取得するための準備
         const userIds = [...new Set(comments.map(c => c.user_id))];
         const { data: profiles } = await api.from('profiles').select('id, display_name').in('id', userIds);
-        const nameMap = {}; profiles?.forEach(p => { nameMap[p.id] = p.display_name; });
+        const nameMap = {}; 
+        profiles?.forEach(p => { nameMap[p.id] = p.display_name; });
+
         const parents = comments.filter(c => !c.parent_id);
         const replies = comments.filter(c => c.parent_id);
+
         listEl.innerHTML = parents.map(p => {
             const renderComment = (c, isReply) => {
                 const isMine = currentUser && c.user_id === currentUser.id;
-                const name = nameMap[c.user_id] || c.user_name || "名無し";
+                
+                // ★【重要】名前と本文を「無害化（エスケープ）」する
+                const rawName = nameMap[c.user_id] || c.user_name || "名無し";
+                const safeName = escapeHtml(rawName); // 名前を安全に
+                const safeBody = escapeHtml(c.body);  // 本文を安全に
+
                 const privateMark = c.is_private ? '<span style="background:#e0e0e0; color:#000; font-size:0.75em; padding:2px 6px; border-radius:4px; margin-right:5px; font-weight:bold; border:1px solid #ccc;">非公開</span> ' : '';
-                const nameLink = `<strong onclick="openAuthorPage('${c.user_id}')" style="cursor:pointer; text-decoration:underline;">${name}</strong>`;
+                
+                // 安全になった safeName を使う
+                const nameLink = `<strong onclick="openAuthorPage('${c.user_id}')" style="cursor:pointer; text-decoration:underline;">${safeName}</strong>`;
+                
                 let manageBtns = '';
+                // 編集ボタンのところは、promptに渡すので元の c.body を使う（ただしバッククォートだけエスケープ）
                 if (isMine) manageBtns = `<span onclick="startEditComment('${c.id}', \`${c.body.replace(/`/g, '\\`')}\` )" style="cursor:pointer; color:#007bff; font-size:0.8em; margin-left:12px; text-decoration: underline;">編集</span><span onclick="deleteComment('${c.id}')" style="cursor:pointer; color:#dc3545; font-size:0.8em; margin-left:8px; text-decoration: underline;">削除</span>`;
-                const replyBtn = `<span onclick="prepareReply('${c.id}', '${name}')" style="cursor:pointer; color:#666; font-size:0.8em; margin-left:12px; text-decoration: underline;">返信</span>`;
+                
+                // 返信ボタンも safeName を使う
+                const replyBtn = `<span onclick="prepareReply('${c.id}', '${safeName}')" style="cursor:pointer; color:#666; font-size:0.8em; margin-left:12px; text-decoration: underline;">返信</span>`;
+                
                 const style = isReply ? 'margin-left: 30px; border-left: 2px solid #ddd; padding-left: 10px; margin-top: 8px;' : 'margin-bottom: 8px;';
-                return `<div class="comment-item" style="${style}">${privateMark}${nameLink}: <span>${c.body}</span> ${replyBtn}${manageBtns}</div>`;
+                
+                // ★ ここで safeBody を表示する
+                return `<div class="comment-item" style="${style}">${privateMark}${nameLink}: <span>${safeBody}</span> ${replyBtn}${manageBtns}</div>`;
             };
+
             return `<div style="margin-bottom: 15px;">${renderComment(p, false)}${replies.filter(r => String(r.parent_id) === String(p.id)).map(r => renderComment(r, true)).join('')}</div>`;
         }).join('');
     }
