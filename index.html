@@ -441,6 +441,12 @@
             <input type="password" id="password" placeholder="パスワード">
             <button onclick="doLogIn()">ログイン</button>
             <button onclick="doSignUp()" class="btn-outline">新規登録</button>
+            
+            <div style="text-align: right; margin-top: 10px;">
+                <span onclick="doPasswordReset()" style="font-size: 0.8em; color: #666; text-decoration: underline; cursor: pointer;">
+                    パスワードを忘れた場合
+                </span>
+            </div>
         </section>
 
         <div id="user-page" class="hidden">
@@ -2276,6 +2282,36 @@
             closeRequestForm();
         }
     }
+
+    // パスワード再設定メールを送る関数
+    async function doPasswordReset() {
+        const email = document.getElementById('email').value;
+        if (!email) return alert("メールアドレスを入力してください");
+
+        if (!confirm("入力されたアドレスに、パスワード再設定メールを送信しますか？")) return;
+
+        // パスワード設定後に戻ってくるURL（今のページ）
+        const redirectTo = window.location.href;
+
+        const { error } = await api.auth.resetPasswordForEmail(email, {
+            redirectTo: redirectTo
+        });
+
+        if (error) {
+            // セキュリティ対策：登録されていないメアドでも「送信しました」と出すのが一般的ですが、
+            // 開発中はわかりやすくエラーを出してもOKです。
+            // 実際は "User not found" などのエラーが出ます。
+            if(error.message.includes("User not found")) {
+                 alert("このメールアドレスは登録されていません。");
+            } else {
+                 alert("送信エラー: " + error.message);
+            }
+        } else {
+            alert("再設定メールを送信しました。\nメール内のリンクをクリックして、新しいパスワードを設定してください。");
+        }
+    }
+
+    
 </script>   
 
     <div id="like-users-overlay" class="hidden">
