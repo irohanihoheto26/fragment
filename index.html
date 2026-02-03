@@ -899,9 +899,24 @@
         else setTimeout(() => { window.location.replace(window.location.pathname); }, 500);
     }    
     async function doSignUp() { 
-        const { error } = await api.auth.signUp({ email: document.getElementById('email').value, password: document.getElementById('password').value }); 
-        if(error) alert(error.message); else alert("メールを確認してください"); 
-    }    
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        const { error } = await api.auth.signUp({ 
+            email: email, 
+            password: password,
+            options: {
+                // ▼ ここが修正ポイント！戻り先を明示的に指定します
+                emailRedirectTo: 'https://irohanihoheto26.github.io/fragment/'
+            }
+        }); 
+
+        if(error) {
+            alert(error.message); 
+        } else {
+            alert("確認メールを送信しました。\nメール内のリンクをクリックしてください。"); 
+        }
+    }  
     async function doLogOut() {
         await api.auth.signOut();
         window.localStorage.clear(); window.sessionStorage.clear();
