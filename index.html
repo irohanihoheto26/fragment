@@ -971,19 +971,26 @@
 
     function renderFinalList(sortedNovels) {
         document.getElementById('list').innerHTML = sortedNovels.map(n => { 
+            // ★追加：表示する前にエスケープ（無害化）する
+            const safeTitle = escapeHtml(n.title);
+            const safeAuthor = escapeHtml(n.author_name);
+            const safeSeriesTitle = escapeHtml(n.series_title);
+
             // シリーズ名のHTMLを作成
             const seriesLink = n.series_title 
-                ? `<span onclick="openSeriesPage('${n.series_id}')" style="display:inline-block; background:#efefef; color:#555; font-size:0.75em; padding:2px 6px; border-radius:4px; cursor:pointer; margin-right:5px; vertical-align:middle;"><span class="material-icons" style="font-size:1.2em; vertical-align:text-bottom;">library_books</span> ${n.series_title}</span>` 
+                ? `<span onclick="openSeriesPage('${n.series_id}')" style="display:inline-block; background:#efefef; color:#555; font-size:0.75em; padding:2px 6px; border-radius:4px; cursor:pointer; margin-right:5px; vertical-align:middle;"><span class="material-icons" style="font-size:1.2em; vertical-align:text-bottom;">library_books</span> ${safeSeriesTitle}</span>` 
                 : '';
 
             return `
             <div class="novel-row">
                 <div class="novel-info">
                     <div style="margin-bottom:4px;">${seriesLink}</div>
-                    <span class="novel-title" onclick="openReader('${n.id}')">${n.title}</span>
+                    <span class="novel-title" onclick="openReader('${n.id}')">${safeTitle}</span>
                     ${n.is_r18 ? '<span class="r18-badge">R18</span>' : ''}
-                    <span onclick="openAuthorPage('${n.author_id}')" style="font-size:0.8em; color:#888; cursor:pointer; text-decoration:underline;"> / <span id="author-name-${n.id}">${n.author_name}</span></span>
-                    <div style="margin-top:5px;">${(n.tags||[]).filter(t=>t.trim()).map(t=>`<span class="tag-link" onclick="setSearchTag('${t}')">#${t}</span>`).join('')}</div>
+                    
+                    <span onclick="openAuthorPage('${n.author_id}')" style="font-size:0.8em; color:#888; cursor:pointer; text-decoration:underline;"> / <span id="author-name-${n.id}">${safeAuthor}</span></span>
+                    
+                    <div style="margin-top:5px;">${(n.tags||[]).filter(t=>t.trim()).map(t=>`<span class="tag-link" onclick="setSearchTag('${escapeHtml(t)}')">#${escapeHtml(t)}</span>`).join('')}</div>
                 </div>
                 
                 <div class="novel-stats" style="display:flex; align-items:center; gap:10px; flex-shrink:0; white-space:nowrap;">
@@ -1393,32 +1400,20 @@
     }
 
     // 小説の削除（関連データも削除する強化版）
+    // 小説の削除（関連データも削除する強化版）
     async function deleteNovel(id, title) {
-        if (!confirm(`作品「${title}」を削除しますか？\n（この操作は取り消せません）`)) return;
-
+        // ... (省略) ...
         try {
+            // ▼▼▼ これがエラーを直すための「掃除」処理です ▼▼▼
             // 1. 関連するデータ（いいね、コメント、ブックマーク）を先に消す
-            // ※ Supabase側で "ON DELETE CASCADE" 設定がされていれば不要ですが、念のためJS側でも行います。
             await api.from('likes').delete().eq('novel_id', id);
-            await api.from('comments').delete().eq('novel_id', id);
+            await api.from('comments').delete().eq('novel_id', id);   // ← ここでコメントを消しているので、もうエラーは出ません！
             await api.from('bookmarks').delete().eq('novel_id', id);
             await api.from('notifications').delete().eq('novel_id', id);
 
-            // 2. 本体を削除
+            // 2. 邪魔者がいなくなったので、本体を削除
             const { error } = await api.from('novels').delete().eq('id', id);
-
-            if (error) {
-                console.error(error);
-                alert("削除に失敗しました: " + error.message);
-            } else {
-                alert("削除しました。");
-                location.reload();
-            }
-        } catch (err) {
-            console.error(err);
-            alert("予期せぬエラーが発生しました。");
-        }
-    }
+            // ... (省略) ...
 
     function closeEditor() { document.getElementById('editor-overlay').style.display = 'none'; }
 
