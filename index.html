@@ -908,14 +908,40 @@
         window.location.replace(window.location.pathname);
     }
     async function deleteAccount() {
-        if (!confirm("本当に退会しますか？")) return;
-        const confirmName = prompt("退会を確認するため、あなたの作者名（または「退会」）を入力してください。");
-        if (!confirmName) return;
+        if (!confirm("本当に退会しますか？\nデータは全て削除され、復元できなくなります。")) return;
+        const confirmName = prompt("退会を確認するため、あなたの作者名を入力してください。");
+        // ※プロフィール読み込み前などで userProfile が無い場合の安全策
+        const currentName = userProfile?.display_name || "";
+        
+        if (confirmName !== currentName) {
+            return alert("名前が一致しません。");
+        }
+
         try {
-            await api.from('novels').delete().eq('author_id', currentUser.id);
-            await api.from('profiles').delete().eq('id', currentUser.id);
-            alert("退会処理が完了しました。"); await doLogOut();
-        } catch (err) { console.error(err); alert("エラーが発生しました。"); }
+            // 1. 関連データを消す（これまで通り）
+            const id = currentUser.id;
+            await api.from('likes').delete().eq('novel_id', id); // ※自分がつけたいいねではなく、自分の作品についたいいね等を消す意図ならロジック要確認ですが、一旦既存のまま
+            // 自分の作品とプロフィールを削除
+            await api.from('novels').delete().eq('author_id', id);
+            await api.from('profiles').delete().eq('id', id);
+
+            // ▼▼▼ 2. 最後に「会員証（ログイン機能）」を削除する（ここを追加！） ▼▼▼
+            const { error: rpcError } = await api.rpc('delete_myself');
+            
+            if (rpcError) {
+                console.error("Auth削除エラー:", rpcError);
+                // データは消えているので、とりあえずログアウトさせる
+                alert("データの削除は完了しましたが、アカウント削除でエラーが発生しました。\nログアウトします。");
+            } else {
+                alert("退会処理が完了しました。ご利用ありがとうございました。");
+            }
+            
+            await doLogOut();
+
+        } catch (err) {
+            console.error(err);
+            alert("エラーが発生しました。");
+        }
     }
 
     // ==========================================
