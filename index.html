@@ -474,6 +474,12 @@
                     <button type="button" onclick="resetReaderDesign()" style="width:auto; font-size:0.8em; margin-bottom:5px;">初期デザインに戻す</button>
                     <textarea id="reader-custom-input" style="width:100%; height:100px;"></textarea>
                 </div>
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed #ccc;">
+                <button type="button" onclick="openAccountSettings()" style="background:#fff; border:1px solid #333; color:#333;">
+                    <span class="material-icons" style="vertical-align:text-bottom; font-size:1.1em;">manage_accounts</span> 
+                    アカウント設定（メアド・パスワード）
+                </button>
+            </div>
                 <button onclick="saveProfile()" class="btn-primary" style="margin-top:15px;">更新</button>
             </div>
             <div id="notification-banner" class="hidden" style="background: #fff9f0; border: 1px solid #ffebcc; padding: 15px; margin-bottom: 20px; border-radius: 8px;">
@@ -2311,6 +2317,52 @@
         }
     }
 
+    // アカウント設定ポップアップを開く
+    function openAccountSettings() {
+        document.getElementById('account-overlay').classList.remove('hidden');
+        // 中身をリセット
+        document.getElementById('change-email-input').value = "";
+        document.getElementById('change-password-input').value = "";
+    }
+
+    // アカウント設定ポップアップを閉じる
+    function closeAccountSettings() {
+        document.getElementById('account-overlay').classList.add('hidden');
+    }
+
+    async function updateUserEmail() {
+        const newEmail = document.getElementById('change-email-input').value.trim();
+        if (!newEmail) return alert("新しいメールアドレスを入力してください");
+        
+        if (!confirm("メールアドレスを変更しますか？\n（確認メールが届くまで変更は完了しません）")) return;
+
+        const { error } = await api.auth.updateUser({ email: newEmail });
+
+        if (error) {
+            alert("変更エラー: " + error.message);
+        } else {
+            alert("確認メールを送信しました。\n新しいアドレスに届いたリンクをクリックして変更を完了してください。");
+            document.getElementById('change-email-input').value = "";
+        }
+    }
+
+    // ▼▼▼ 追加：パスワード変更処理 ▼▼▼
+    async function updateUserPassword() {
+        const newPassword = document.getElementById('change-password-input').value.trim();
+        if (!newPassword) return alert("新しいパスワードを入力してください");
+        if (newPassword.length < 6) return alert("パスワードは6文字以上にしてください");
+
+        if (!confirm("パスワードを変更しますか？")) return;
+
+        const { error } = await api.auth.updateUser({ password: newPassword });
+
+        if (error) {
+            alert("変更エラー: " + error.message);
+        } else {
+            alert("パスワードを変更しました！\n次回から新しいパスワードでログインしてください。");
+            document.getElementById('change-password-input').value = "";
+        }
+    }
     
 </script>   
 
@@ -2325,6 +2377,32 @@
                 </div>
             
             <button onclick="closeLikeModal()" style="background:#eee; color:#333; border:none; width:100%;">閉じる</button>
+        </div>
+    </div>
+    <div id="account-overlay" class="hidden" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.4); z-index:6000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(2px);">
+        <div class="like-modal-box">
+            <h3 style="margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px; font-size:1.1em;">
+                <span class="material-icons" style="vertical-align:text-bottom;">lock</span> 
+                アカウント設定
+            </h3>
+            
+            <div style="margin-bottom: 20px;">
+                <label style="font-size:0.8em; font-weight:bold; display:block; margin-bottom:5px;">メールアドレス変更</label>
+                <div style="display:flex; gap:5px;">
+                    <input type="email" id="change-email-input" placeholder="新しいメールアドレス" style="margin:0;">
+                    <button onclick="updateUserEmail()" style="width:auto; font-size:0.8em; margin:0; padding:0 15px; background:#666; color:#fff; border:none;">変更</button>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+                <label style="font-size:0.8em; font-weight:bold; display:block; margin-bottom:5px;">パスワード変更</label>
+                <div style="display:flex; gap:5px;">
+                    <input type="password" id="change-password-input" placeholder="新しいパスワード" style="margin:0;">
+                    <button onclick="updateUserPassword()" style="width:auto; font-size:0.8em; margin:0; padding:0 15px; background:#666; color:#fff; border:none;">変更</button>
+                </div>
+            </div>
+
+            <button onclick="closeAccountSettings()" style="background:#eee; color:#333; border:none; width:100%;">閉じる</button>
         </div>
     </div>
     
