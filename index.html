@@ -1401,19 +1401,35 @@
 
     // 小説の削除（関連データも削除する強化版）
     // 小説の削除（関連データも削除する強化版）
+    // 小説の削除（関連データも削除する強化版）
     async function deleteNovel(id, title) {
-        // ... (省略) ...
+        // タイトルがない場合の安全策
+        const targetTitle = title || "この作品";
+
+        if (!confirm(`作品「${targetTitle}」を削除しますか？\n（この操作は取り消せません）`)) return;
+
         try {
-            // ▼▼▼ これがエラーを直すための「掃除」処理です ▼▼▼
-            // 1. 関連するデータ（いいね、コメント、ブックマーク）を先に消す
+            // ▼▼▼ 1. 関連するデータを先に消す（エラー回避） ▼▼▼
             await api.from('likes').delete().eq('novel_id', id);
-            await api.from('comments').delete().eq('novel_id', id);   // ← ここでコメントを消しているので、もうエラーは出ません！
+            await api.from('comments').delete().eq('novel_id', id);
             await api.from('bookmarks').delete().eq('novel_id', id);
             await api.from('notifications').delete().eq('novel_id', id);
 
-            // 2. 邪魔者がいなくなったので、本体を削除
+            // ▼▼▼ 2. 本体を削除 ▼▼▼
             const { error } = await api.from('novels').delete().eq('id', id);
-            // ... (省略) ...
+
+            if (error) {
+                console.error(error);
+                alert("削除に失敗しました: " + error.message);
+            } else {
+                alert("削除しました。");
+                location.reload();
+            }
+        } catch (err) {
+            console.error(err);
+            alert("予期せぬエラーが発生しました。");
+        }
+    }
 
     function closeEditor() { document.getElementById('editor-overlay').style.display = 'none'; }
 
