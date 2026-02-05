@@ -423,16 +423,17 @@
         </div>
     </div>
         
-        <input type="text" style="display:none" aria-hidden="true">
-<input 
-  type="search" 
-  name="site_search_query" 
-  id="search-input" 
-  class="search-box-side" 
-  placeholder="検索..." 
-  oninput="getList()" 
-  autocomplete="on"
->        
+<form role="search" onsubmit="return false;" style="margin-bottom: 10px;">
+            <input 
+              type="search" 
+              name="site_search_query" 
+              id="search-input" 
+              class="search-box-side" 
+              placeholder="検索..." 
+              oninput="getList()" 
+              autocomplete="on"
+            >
+        </form>     
         <div id="logged-in-nav" class="hidden">
             <button onclick="openEditor()">新規投稿</button>
             <button class="btn-outline" onclick="doLogOut()">ログアウト</button>
