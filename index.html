@@ -633,6 +633,10 @@
                         <button id="like-btn" onclick="toggleLike()" style="width:auto; padding: 10px 30px;">
                             ♥ <span id="read-like-text"></span> <span id="read-like-count">0</span>
                         </button>
+                        <button onclick="shareToX()" style="width:auto; padding: 10px 20px; background: #fff; border: 1px solid #333; color: #333; border-radius: 4px;">
+                            <span class="material-icons" style="font-size:1.1em; vertical-align:text-bottom;">ios_share</span>
+                            Post
+                        </button>
                     </div>
                     <span id="author-link-zone" style="font-size:0.9em; color:#666;"></span>
                 </div>
@@ -2414,6 +2418,26 @@
             alert("パスワードを変更しました！\n次回から新しいパスワードでログインしてください。");
             document.getElementById('change-password-input').value = "";
         }
+    }
+
+    // X (Twitter) シェア機能
+    function shareToX() {
+        if (!currentOpenedNovel) return;
+
+        // 投稿文を作成：『作品名』（作者名） #Fragment
+        const title = currentOpenedNovel.title;
+        // 作者名取得（プロフィールの名前があればそれを優先、なければデータの名前）
+        const author = document.querySelector('#author-link-zone strong')?.innerText || currentOpenedNovel.author_name;
+        
+        const text = `『${title}』（作者：${author}）を読む`;
+        const hashtags = "Fragment,Web小説"; // タグはお好みで変更してください
+        const url = window.location.href; // サイトのURL
+
+        // Xの投稿画面URLを作成
+        const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${hashtags}`;
+
+        // 新しいタブで開く
+        window.open(intentUrl, '_blank');
     }
     
 </script>   
