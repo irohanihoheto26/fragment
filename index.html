@@ -669,15 +669,15 @@
     <div id="editor-overlay">
         <div class="overlay-content">
             <h2>新規投稿</h2>
-            <input type="text" id="title-input" placeholder="タイトル">
+            <input type="text" id="title-input" placeholder="タイトル" oninput="saveDraft()">
             <div style="display:flex; gap:10px; margin-bottom:10px;">
                 <select id="series-select" style="flex:1; margin-bottom:0; padding:10px; border:1px solid #ddd; border-radius:4px;">
                     <option value="">（シリーズなし）</option>
                 </select>
                 <button onclick="createNewSeries()" style="width:auto; margin:0; font-size:0.8em; padding:0 15px; white-space:nowrap;">＋ シリーズ作成</button>
             </div>
-            <input type="text" id="tags-input" placeholder="タグ (カンマ区切り)">
-            <textarea id="caption-input" placeholder="キャプション（あらすじ等）" rows="3"></textarea>
+            <input type="text" id="tags-input" placeholder="タグ (カンマ区切り)" oninput="saveDraft()">
+            <textarea id="caption-input" placeholder="キャプション（あらすじ等）" oninput="saveDraft()" rows="3"></textarea>
             
             <div class="checkbox-group">
                 <label>
@@ -699,7 +699,7 @@
                 <small style="color:#888; display:block; margin-top:5px;">※本文中のこの名前が、読者の指定した名前に変換されます。</small>
             </div>
 
-            <textarea id="content-input" rows="20" placeholder="本文を入力..."></textarea>
+            <textarea id="content-input" rows="20" placeholder="本文を入力..." oninput="saveDraft()"></textarea>
             <div style="text-align:right; font-size:0.8em; color:#888; margin-bottom:5px;">
                 文字数: <span id="current-count">0</span>
             </div>
@@ -1214,6 +1214,7 @@
         await loadSeriesOptions(); 
         
         if (id) {
+            // --- 既存作品の編集モード（ここは変更なし） ---
             const n = allMyNovels.find(x => String(x.id) === String(id));
             if (!n) return;
             document.getElementById('title-input').value = n.title || "";
@@ -1234,22 +1235,52 @@
                 document.getElementById('default-name-area').classList.add('hidden');
                 document.getElementById('default-name-input').value = "";
             }
+
         } else {
-            document.getElementById('title-input').value = "";
-            document.getElementById('series-select').value = ""; 
-            document.getElementById('tags-input').value = "";
-            document.getElementById('caption-input').value = "";
-            document.getElementById('content-input').value = "";
-            document.getElementById('r18-check').checked = false;
-            document.getElementById('private-check').checked = false;
-            document.getElementById('current-count').innerText = "0";
-            document.getElementById('name-convert-check').checked = false;
-            document.getElementById('default-name-area').classList.add('hidden');
+            // --- 新規投稿モード（ここに復元ロジックを追加） ---
+            
+            const draft = localStorage.getItem('fragment_draft_data');
+            let isRestored = false;
+
+            // 下書きがあって、ユーザーが「OK」と言ったら復元する
+            if (draft) {
+                if (confirm("前回書きかけのデータが残っています。\n復元しますか？")) {
+                    const d = JSON.parse(draft);
+                    document.getElementById('title-input').value = d.title || "";
+                    document.getElementById('tags-input').value = d.tags || "";
+                    document.getElementById('caption-input').value = d.caption || "";
+                    document.getElementById('content-input').value = d.content || "";
+                    // シリーズなどは復元対象外（都度選択）
+                    document.getElementById('series-select').value = ""; 
+                    document.getElementById('r18-check').checked = false;
+                    document.getElementById('private-check').checked = false;
+                    
+                    isRestored = true;
+                }
+            }
+
+            if (!isRestored) {
+                // 復元しないなら真っ白にする
+                document.getElementById('title-input').value = "";
+                document.getElementById('series-select').value = ""; 
+                document.getElementById('tags-input').value = "";
+                document.getElementById('caption-input').value = "";
+                document.getElementById('content-input').value = "";
+                document.getElementById('r18-check').checked = false;
+                document.getElementById('private-check').checked = false;
+                document.getElementById('current-count').innerText = "0";
+                document.getElementById('name-convert-check').checked = false;
+                document.getElementById('default-name-area').classList.add('hidden');
+            }
+            
+            // 文字数カウント更新
+            const len = document.getElementById('content-input').value.length;
+            document.getElementById('current-count').innerText = len.toLocaleString();
         }
         document.getElementById('editor-overlay').style.display = 'block';
     }
 
-    // シリーズ目次ページを開く（修正版：確実に表示させる）
+    
     // シリーズ目次ページを開く（リンク移動修正版）
     async function openSeriesPage(seriesId) {
         const overlay = document.getElementById('series-overlay');
@@ -1514,12 +1545,14 @@
         if(error) {
             alert(error.message); 
         } else {
+            // ★追加：新規投稿が成功したら、用済みになった下書きデータを消す
+            if (!editingNovelId) {
+                localStorage.removeItem('fragment_draft_data');
+            }
             location.reload();
         }
     }
 
-    // 小説の削除（関連データも削除する強化版）
-    // 小説の削除（関連データも削除する強化版）
     // 小説の削除（関連データも削除する強化版）
     async function deleteNovel(id, title) {
         // タイトルがない場合の安全策
@@ -2478,6 +2511,38 @@
         // 新しいタブで開く
         window.open(intentUrl, '_blank');
     }
+
+    // ==========================================
+    // ★追加機能：執筆中の事故防止システム
+    // ==========================================
+
+    // 1. 自動保存機能
+    function saveDraft() {
+        // 編集中（IDがある時）は、誤動作防止のため一時保存しない（または別キーにする）
+        // 今回はシンプルに「新規投稿の事故」を防ぐため、新規作成時のみ有効にします
+        if (editingNovelId) return;
+
+        const draftData = {
+            title: document.getElementById('title-input').value,
+            tags: document.getElementById('tags-input').value,
+            caption: document.getElementById('caption-input').value,
+            content: document.getElementById('content-input').value,
+            savedAt: new Date().getTime()
+        };
+        localStorage.setItem('fragment_draft_data', JSON.stringify(draftData));
+    }
+
+    // 2. ブラウザバック・閉じる防止機能
+    window.addEventListener('beforeunload', function (e) {
+        const editor = document.getElementById('editor-overlay');
+        const content = document.getElementById('content-input').value;
+        
+        // エディタが開いていて、かつ本文に何か書かれている場合のみ警告
+        if (editor.style.display !== 'none' && content.trim() !== "") {
+            e.preventDefault(); // イベントをキャンセル
+            e.returnValue = ''; // これを書くとブラウザ標準の「保存されていませんが〜」が出ます
+        }
+    });
     
 </script>   
 
