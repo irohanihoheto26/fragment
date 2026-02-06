@@ -1012,14 +1012,30 @@
     async function saveProfile() {
         const name = document.getElementById('prof-name').value.trim();
         if (!name) return alert("作者名は必須です！");
-        const updates = { id: currentUser.id, display_name: name, bio: document.getElementById('prof-bio').value, custom_css: document.getElementById('prof-css').value, reader_custom_code: document.getElementById('reader-custom-input').value, updated_at: new Date() };
+
+        const updates = { 
+            id: currentUser.id, 
+            display_name: name, 
+            bio: document.getElementById('prof-bio').value, 
+            custom_css: document.getElementById('prof-css').value, 
+            reader_custom_code: document.getElementById('reader-custom-input').value, 
+            updated_at: new Date() 
+        };
+
         const { error } = await api.from('profiles').upsert(updates);
-        if (error) alert("エラー: " + error.message); else { alert("設定を保存しました！"); location.reload(); }
+
+        if (error) {
+            // ▼▼▼ 追加箇所：名前被りエラー（コード 23505）を検知 ▼▼▼
+            if (error.code === '23505') {
+                alert("その名前は既に使用されています。\n別の名前にしてください。");
+            } else {
+                alert("エラー: " + error.message);
+            }
+        } else { 
+            alert("設定を保存しました！"); 
+            location.reload(); 
+        }
     }
-    function toggleSettings() { const s = document.getElementById('profile-edit-area'); s.style.display = s.style.display==='block'?'none':'block'; }
-    function forceProfileSetup() { document.getElementById('profile-edit-area').style.display = 'block'; document.getElementById('prof-name').style.border = "2px solid red"; }
-    function resetToTemplate() { if (confirm("初期化しますか？")) document.getElementById('prof-css').value = defaultAuthorTemplate; }
-    function resetReaderDesign() { if (confirm("初期化しますか？")) document.getElementById('reader-custom-input').value = defaultReaderTemplate; }
 
     // ==========================================
     // 5. LIBRARY & LIST
