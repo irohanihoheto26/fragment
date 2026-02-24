@@ -300,9 +300,12 @@
             <span class="rule-link" onclick="openRequestForm()" style="color:#2b9a8e;">ご意見・ご要望</span>
         </div>
 
-        <form role="search" onsubmit="getList(); return false;" style="margin-bottom: 10px;">
-            <input type="search" name="site_search_query" id="search-input" class="search-box-side" placeholder="検索... (Enterで実行)" autocomplete="on">
-        </form>      
+        <form role="search" onsubmit="getList(); document.getElementById('library-section-header').scrollIntoView({ behavior: 'smooth' }); return false;" style="margin-bottom: 10px;">
+            <div style="position: relative;">
+                <span class="material-icons" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #aaa; font-size: 1.2em; pointer-events: none;">search</span>
+                <input type="search" name="site_search_query" id="search-input" class="search-box-side" placeholder="検索... (Enterで実行)" autocomplete="on" style="padding-left: 36px; margin-bottom: 0;">
+            </div>
+        </form>
         <div id="logged-in-nav" class="hidden">
             <button onclick="openEditor()">新規投稿</button>
             <button class="btn-outline" onclick="doLogOut()">ログアウト</button>
