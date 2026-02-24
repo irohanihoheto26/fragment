@@ -2,16 +2,16 @@ name: Supabase Keep Alive
 
 on:
   schedule:
-    # 毎日 0:00 (UTC) に実行（日本時間の朝9時くらい）
+    # 毎日 日本時間の午前9時（UTC 0:00）に実行
     - cron: '0 0 * * *'
-  workflow_dispatch: # 手動でも実行できるようにする
+  workflow_dispatch: # 手動実行ボタンを有効にする（テスト用）
 
 jobs:
-  ping:
+  ping_supabase:
     runs-on: ubuntu-latest
     steps:
-      - name: Send a request to Supabase
+      - name: Send Heartbeat Request
         run: |
-          curl -X GET "https://[あなたのPROJECT_REF].supabase.co/rest/v1/" \
+          curl -i -X GET "https://fnobmngpstzolphexluc.supabase.co/rest/v1/" \
           -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
           -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
