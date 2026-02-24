@@ -446,7 +446,10 @@
     <main>
         <section id="auth-form" class="hidden" style="border:2px solid #000; padding:20px; margin-bottom:40px;">
             <input type="email" id="email" placeholder="メールアドレス">
-            <input type="password" id="password" placeholder="パスワード">
+            <div style="position: relative; margin-bottom: 10px;">
+    <input type="password" id="password" placeholder="パスワード" style="margin-bottom: 0; padding-right: 40px;">
+    <span id="toggle-password" class="material-icons" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #888; font-size: 1.2em; user-select: none;">visibility_off</span>
+</div>
             <button onclick="doLogIn()">ログイン</button>
             <button onclick="doSignUp()" class="btn-outline">新規登録</button>
             
@@ -898,6 +901,27 @@
             });
         }
     }
+
+    // パスワードの表示・非表示を切り替える共通関数
+function setupPasswordToggle(inputId, iconId) {
+    const passwordInput = document.getElementById(inputId);
+    const toggleIcon = document.getElementById(iconId);
+
+    if (!passwordInput || !toggleIcon) return;
+
+    toggleIcon.addEventListener('click', () => {
+        // type属性を切り替える
+        const isPassword = passwordInput.type === 'password';
+        passwordInput.type = isPassword ? 'text' : 'password';
+        
+        // アイコンを切り替える（visibility ⇔ visibility_off）
+        toggleIcon.innerText = isPassword ? 'visibility' : 'visibility_off';
+        
+        // アイコンの色を少し変えるとわかりやすい
+        toggleIcon.style.color = isPassword ? 'var(--main-color)' : '#888';
+    });
+}
+    
 
     // ==========================================
     // 3. AUTHENTICATION
@@ -2371,7 +2395,11 @@
                 else { area.classList.add('hidden'); document.getElementById('default-name-input').value = ""; }
             }
         });
+        // 既存のDOMContentLoadedの中に追加
+setupPasswordToggle('password', 'toggle-password'); // ログイン画面用
+setupPasswordToggle('change-password-input', 'toggle-change-password'); // 設定画面用
     });
+    
     window.addEventListener('pageshow', (event) => { if (event.persisted) window.location.reload(); });
     const readerOverlay = document.getElementById('reader-overlay');
     readerOverlay.addEventListener('scroll', function() {
@@ -2577,7 +2605,10 @@
             <div style="margin-bottom: 20px;">
                 <label style="font-size:0.8em; font-weight:bold; display:block; margin-bottom:5px;">パスワード変更</label>
                 <div style="display:flex; gap:5px;">
-                    <input type="password" id="change-password-input" placeholder="新しいパスワード" style="margin:0;">
+                    <div style="position: relative; flex: 1;">
+    <input type="password" id="change-password-input" placeholder="新しいパスワード" style="margin:0; padding-right: 40px;">
+    <span id="toggle-change-password" class="material-icons" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: #888; font-size: 1.2em; user-select: none;">visibility_off</span>
+</div>
                     <button onclick="updateUserPassword()" style="width:auto; font-size:0.8em; margin:0; padding:0 15px; background:#666; color:#fff; border:none;">変更</button>
                 </div>
             </div>
