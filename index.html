@@ -386,7 +386,7 @@
         </div>
         
         <div id="library-section-header" style="margin-top: 80px; padding-top: 40px; border-top: 3px double #000; margin-bottom: 20px; display:flex; align-items:center; gap:15px;">
-            <h2 style="margin: 0;">ライブラリ</h2>
+            <h2 id="library-title" style="margin: 0;">ライブラリ</h2>
             <div style="display: flex; align-items: center; gap: 10px; font-size:0.9em;">
                 <select id="sort-order" onchange="getList()" style="width:auto; padding: 5px;">
                     <option value="created_at">最新順</option>
@@ -881,8 +881,19 @@
                 filtered = filtered.filter(n => bkmIds.includes(n.id));
             }
 
-            if (sw) filtered = filtered.filter(n => n.title.toLowerCase().includes(sw) || n.author_name.toLowerCase().includes(sw) || (n.tags && n.tags.some(t => t.toLowerCase().includes(sw))));
-            document.getElementById('search-result-count').innerText = sw ? `${filtered.length} 件見つかりました` : "";
+            // ★ 見出しの要素を取得
+            const titleEl = document.getElementById('library-title');
+
+            if (sw) {
+                // 検索ワードがある時の処理
+                filtered = filtered.filter(n => n.title.toLowerCase().includes(sw) || n.author_name.toLowerCase().includes(sw) || (n.tags && n.tags.some(t => t.toLowerCase().includes(sw))));
+                if (titleEl) titleEl.innerText = "検索結果";
+                document.getElementById('search-result-count').innerHTML = `「<strong style="color:var(--main-color);">${escapeHtml(sw)}</strong>」: ${filtered.length} 件`;
+            } else {
+                // 検索ワードが空（通常時）の処理
+                if (titleEl) titleEl.innerText = "ライブラリ";
+                document.getElementById('search-result-count').innerText = "";
+            }
             
             const promises = filtered.map(async (n) => {
                 const { data: p } = await api.from('profiles').select('display_name').eq('id', n.author_id).maybeSingle();
