@@ -1777,14 +1777,21 @@ function setupPasswordToggle(inputId, iconId) {
         const nameChanger = document.getElementById('name-changer-group');
         const seriesNav = document.getElementById('series-nav'); // ▼追加1：要素を取得
         const oldStyle = document.getElementById('dynamic-reader-style');
+        
         if (oldStyle) oldStyle.remove();
         if (interactiveZone) interactiveZone.classList.add('hidden');
         if (nameChanger) nameChanger.classList.add('hidden');
-        // ▼追加2：ここで隠す！
         if (seriesNav) seriesNav.classList.add('hidden');
-        bodyEl.classList.remove('indent-text', 'hanging-indent');
+        
+        // ★ここを修正！ ルール画面で付けた強力なスタイル設定をここで一旦「空（リセット）」にする
+        if (bodyEl) {
+            bodyEl.classList.remove('indent-text', 'hanging-indent');
+            bodyEl.style.cssText = ""; 
+        }
         const titleEl = document.getElementById('read-title');
-        if (titleEl) { titleEl.style.textDecoration = "none"; titleEl.style.color = ""; }
+        if (titleEl) { 
+            titleEl.style.cssText = ""; 
+        }
     }
 
     function openRules() {
@@ -1863,17 +1870,24 @@ function setupPasswordToggle(inputId, iconId) {
         if (!titleEl || !bodyEl) return;
 
         titleEl.innerText = "このサイトについて";
+        
+        // ★このページ専用の綺麗なスタイルを当てる
+        titleEl.style.cssText = "text-align: center; margin-bottom: 30px; font-family: 'Yu Gothic', sans-serif; font-weight: bold;";
+        bodyEl.style.cssText = "max-width: 600px; margin: 0 auto; line-height: 1.8; font-family: 'Yu Gothic', sans-serif;";
+
         bodyEl.innerHTML = `
-        <div class="about-section" style="margin-top: -110px;"> 
-        <h3 style="color: #fcaf17; font-size: 1.05em; border-left: 4px solid #fcaf17; padding-left: 10px; margin: -50px 0 -15px 0;">サイトの特色</h3>
-        <p style="font-size: 0.95em; margin: -20px 0 -10px 0; line-height: 1.2;">　当サイトは、かつて隆盛を誇った「個人サイト」のような自由な空気感を大切にしています。他の投稿サイトでは難しい細かなデザインカスタマイズが可能で、あなたの作品をあなたらしい空間で公開できるのが最大の特徴です。</p>
-        <h3 style="color: #fcaf17; font-size: 1.05em; border-left: 4px solid #fcaf17; padding-left: 10px; margin: 0 0 -15px 0;">創設経緯</h3>
-        <p style="font-size: 0.95em; margin: -20px 0 -10px 0; line-height: 1.2;">　SNSや大手プラットフォームの普及により、自分だけの「城」である個人サイトは激減しました。しかし、流れていくタイムラインではなく、自分の作品を自分の好きな色で飾り、静かに置いておける場所が今こそ必要だと感じています。</p>
-        <h3 style="color: #fcaf17; font-size: 1.05em; border-left: 4px solid #fcaf17; padding-left: 10px; margin: 0 0 -15px 0;">機能について</h3>
-        <p style="font-size: 0.95em; margin: -20px 0 -10px 0; line-height: 1.2;">◎いいね<br>　作者には、誰が何にいいねしたか知らされます。作品のいいねの数は公開されますが、作者以外には誰が何にいいねしているかは分かりません。</p>
-        <p style="font-size: 0.95em; margin: -20px 0 -10px 0; line-height: 1.2;">◎お気に入り<br>　作者に、誰が何をお気に入りしたか知らされます。お気に入りは、その数も、誰が何をお気に入りしたかも誰にも分かりません。なので、単純に読み直したいものなどを気兼ねなくお気に入りできます。</p>
-        <p style="font-size: 0.95em; margin: -20px 0 -10px 0; line-height: 1.2;">◎コメント<br>　公開・非公開を選んで送ることができます。コメントへの返信も同様に、公開・非公開を選べます。</p>
-        <p style="font-size: 0.95em; margin: -20px 0 -10px 0; line-height: 1.2;">◎フォロー・フォロワー<br>　作者には、フォローしたことがお知らせされます。作者以外には、誰が誰をフォローしているか分かりません。</p>
+        <div class="about-section"> 
+            <h3 style="color: #fcaf17; font-size: 1.1em; border-left: 4px solid #fcaf17; padding-left: 10px; margin-bottom: 10px;">サイトの特色</h3>
+            <p style="font-size: 0.95em; margin-bottom: 25px;">　当サイトは、かつて隆盛を誇った「個人サイト」のような自由な空気感を大切にしています。他の投稿サイトでは難しい細かなデザインカスタマイズが可能で、あなたの作品をあなたらしい空間で公開できるのが最大の特徴です。</p>
+            
+            <h3 style="color: #fcaf17; font-size: 1.1em; border-left: 4px solid #fcaf17; padding-left: 10px; margin-bottom: 10px;">創設経緯</h3>
+            <p style="font-size: 0.95em; margin-bottom: 25px;">　SNSや大手プラットフォームの普及により、自分だけの「城」である個人サイトは激減しました。しかし、流れていくタイムラインではなく、自分の作品を自分の好きな色で飾り、静かに置いておける場所が今こそ必要だと感じています。</p>
+            
+            <h3 style="color: #fcaf17; font-size: 1.1em; border-left: 4px solid #fcaf17; padding-left: 10px; margin-bottom: 10px;">機能について</h3>
+            <p style="font-size: 0.95em; margin-bottom: 15px;"><strong>◎いいね</strong><br>　作者には、誰が何にいいねしたか知らされます。作品のいいねの数は公開されますが、作者以外には誰が何にいいねしているかは分かりません。</p>
+            <p style="font-size: 0.95em; margin-bottom: 15px;"><strong>◎お気に入り</strong><br>　作者に、誰が何をお気に入りしたか知らされます。お気に入りは、その数も、誰が何をお気に入りしたかも誰にも分かりません。なので、単純に読み直したいものなどを気兼ねなくお気に入りできます。</p>
+            <p style="font-size: 0.95em; margin-bottom: 15px;"><strong>◎コメント</strong><br>　公開・非公開を選んで送ることができます。コメントへの返信も同様に、公開・非公開を選べます。</p>
+            <p style="font-size: 0.95em; margin-bottom: 25px;"><strong>◎フォロー・フォロワー</strong><br>　作者には、フォローしたことがお知らせされます。作者以外には、誰が誰をフォローしているか分かりません。</p>
         </div>`;
         document.getElementById('reader-overlay').style.display = 'block';
         document.getElementById('reader-overlay').scrollTop = 0;
