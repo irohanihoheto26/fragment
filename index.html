@@ -301,9 +301,16 @@
         </div>
 
         <form role="search" onsubmit="getList(); document.getElementById('library-section-header').scrollIntoView({ behavior: 'smooth' }); return false;" style="margin-bottom: 10px;">
-            <div style="position: relative;">
-                <span class="material-icons" style="position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #aaa; font-size: 1.2em; pointer-events: none;">search</span>
-                <input type="search" name="site_search_query" id="search-input" class="search-box-side" placeholder="検索... (Enterで実行)" autocomplete="on" style="padding-left: 36px; margin-bottom: 0;">
+            <div style="position: relative; display: flex; align-items: center;">
+                <span class="material-icons" style="position: absolute; left: 10px; color: #aaa; font-size: 1.2em; pointer-events: none;">search</span>
+                
+                <input type="search" name="site_search_query" id="search-input" class="search-box-side" placeholder="検索... (Enterで実行)" autocomplete="on" 
+                    style="padding-left: 32px; padding-right: 32px; margin-bottom: 0; width: 100%;"
+                    oninput="document.getElementById('search-clear').style.display = this.value ? 'block' : 'none';">
+                
+                <span id="search-clear" class="material-icons" 
+                    style="position: absolute; right: 10px; color: #aaa; font-size: 1.2em; cursor: pointer; display: none;"
+                    onclick="document.getElementById('search-input').value = ''; getList(); this.style.display = 'none';">close</span>
             </div>
         </form>
         <div id="logged-in-nav" class="hidden">
