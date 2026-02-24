@@ -1503,12 +1503,12 @@
         const titleEl = document.getElementById('read-title');
         if (!titleEl || !bodyEl) return;
 
-        titleEl.innerText = "ルール（必読）";
+        titleEl.innerText = "ルール・利用規約";
         titleEl.style.cssText = "margin: 0 0 30px 0 !important; padding: 0 !important; text-decoration: underline; text-underline-offset: 6px; text-align: center; font-family: 'Yu Gothic', sans-serif; font-weight: bold; font-size: 1.5em;";
         bodyEl.style.cssText = "margin: 0 !important; padding: 0 !important; line-height: 1.5 !important; font-family: 'Yu Gothic', sans-serif !important; text-align: left !important; width: 100% !important;";
 
         bodyEl.innerHTML = `
-        <div style="color: #333; padding-bottom: 20px;">
+        <div style="color: #333; padding-bottom: 40px;">
             <div style="max-width: 600px; margin: 0 auto 25px auto; background: #fffafa; border: 1px solid #ffcccc; border-left: 6px solid #ff4d4d; border-radius: 4px; padding: 10px 15px; display: flex; align-items: flex-start; gap: 12px;">
                 <div style="color: #cc0000; display: flex; align-items: center; margin-top: 2px;">
                     <span class="material-icons" style="font-size: 1.6em;">warning</span>
@@ -1518,21 +1518,52 @@
                     <div>サイトから退出してしまう恐れがあります。移動は必ず<span style="background: #fff; padding: 1px 6px; border: 1px solid #ccc; border-radius: 3px; margin: 0 4px; font-weight:bold; color:#333; font-size: 0.9em;">← 戻る</span>ボタンを使用してください。</div>
                 </div>
             </div>
+
             <div style="max-width: 600px; margin: 0 auto; font-size: 0.9em;">
                 <h4 style="margin: 0 0 5px 0; border-left: 4px solid #fcaf17; padding-left: 10px; font-size:1.05em; line-height: 1.2;">サイトの目的</h4>
                 <p style="margin: 0 0 20px 0;">当サイトは個人による二次創作小説の展示・アーカイブを目的とした専用サイトです。</p>
-                <h4 style="margin: 0 0 5px 0; border-left: 4px solid #fcaf17; padding-left: 10px; font-size:1.05em; line-height: 1.2;">禁止事項・ルール</h4>
+                
+                <h4 style="margin: 0 0 5px 0; border-left: 4px solid #fcaf17; padding-left: 10px; font-size:1.05em; line-height: 1.2;">絶対ルール（必読）</h4>
                 <div class="rules-list-box" style="padding-left: 1em;">
                     <div style="text-indent: -1em; margin-bottom: 3px;">・検索避けのため、<span style="color: #ff4d4d; font-weight: bold;">原作名をそのまま表示することは避けて</span>ください。</div>
+                    <div style="text-indent: -1em; margin-bottom: 3px;">・<span style="border-bottom: 1px solid #000; font-weight: bold;">実在の人物・団体を題材にした作品（いわゆる「ナマモノ」）の投稿は禁止</span>です。</div>
                     <div style="text-indent: -1em; margin-bottom: 3px;">・<span style="border-bottom: 1px solid #000; font-weight: bold;">公序良俗に反する内容、無断転載、AI学習利用は禁止</span>です。</div>
                     <div style="text-indent: -1em; margin-bottom: 3px;">・<span style="background-color: #ffff00; padding: 0 2px;">R指定が必要な場合は必ず設定</span>を行ってください。</div>
                 </div>
-                <p style="margin: 30px 0 10px 0; text-align: center; color: #888; font-size: 0.9em;">ルールを守って、創作活動を楽しみましょう。</p>
+
+                <h4 style="margin: 40px 0 15px 0; border-bottom: 2px solid #ddd; padding-bottom: 5px; font-size:1.1em; line-height: 1.2; color: #444;">利用規約</h4>
+                <div style="font-size: 0.95em; color: #555; line-height: 1.6;">
+                    <strong style="color: #333;">1. 当サイトの性質について</strong>
+                    <p style="margin: 3px 0 15px 0;">当サイトは二次創作物を扱う非公式の個人運営サイトです。原作者様、出版社様、その他関係各社様とは一切関係ありません。</p>
+
+                    <strong style="color: #333;">2. ユーザーの責任</strong>
+                    <p style="margin: 3px 0 15px 0;">投稿された作品に関する権利および責任は、すべて投稿者ご本人に帰属します。トラブルが発生した場合、当サイトは一切の責任を負いかねます。</p>
+
+                    <strong style="color: #333;">3. 禁止行為</strong>
+                    <ul style="margin: 3px 0 15px 0; padding-left: 20px;">
+                        <li>公式の画像・文章の無断転載（アイコン等への使用も含む）</li>
+                        <li>実在の人物・団体を題材にした二次創作（ナマモノ）の投稿</li>
+                        <li>他者の作品の無断転載、自作発言</li>
+                        <li>特定の個人・団体への誹謗中傷</li>
+                        <li>その他、管理人が不適切・運営の妨げになると判断する行為</li>
+                    </ul>
+
+                    <strong style="color: #333;">4. アカウント・作品の措置</strong>
+                    <p style="margin: 3px 0 15px 0;">上記のルールや規約に違反していると管理人が判断した場合、事前の予告なく作品の非公開・削除、またはアカウントの利用停止措置を行うことがあります。</p>
+
+                    <strong style="color: #333;">5. 免責事項</strong>
+                    <p style="margin: 3px 0 15px 0;">当サイトの利用により生じた損害やトラブルについて、管理人は責任を負いません。また、サーバーの不具合等によるデータ消失に備え、執筆データ（下書きなど）のバックアップは各自で行っていただきますようお願いいたします。</p>
+
+                    <strong style="color: #333;">6. 個人情報の取り扱い</strong>
+                    <p style="margin: 3px 0 15px 0;">ご登録いただいたメールアドレスは、ログインおよびアカウント管理（パスワード再設定など）の目的のみに使用し、第三者に提供・公開することはありません。</p>
+                </div>
+
+                <p style="margin: 40px 0 10px 0; text-align: center; color: #888; font-size: 0.9em;">ルールを守って、創作活動を楽しみましょう。</p>
             </div>
         </div>`;
         
         document.getElementById('reader-overlay').style.display = 'block';
-        document.body.style.overflow = 'hidden'; // ★背景スクロール防止
+        document.body.style.overflow = 'hidden'; 
         document.getElementById('reader-overlay').scrollTop = 0;
     }
 
