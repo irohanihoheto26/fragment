@@ -300,8 +300,8 @@
             <span class="rule-link" onclick="openRequestForm()" style="color:#2b9a8e;">ご意見・ご要望</span>
         </div>
 
-        <form role="search" onsubmit="return false;" style="margin-bottom: 10px;">
-            <input type="search" name="site_search_query" id="search-input" class="search-box-side" placeholder="検索..." oninput="getList()" autocomplete="on">
+        <form role="search" onsubmit="getList(); return false;" style="margin-bottom: 10px;">
+            <input type="search" name="site_search_query" id="search-input" class="search-box-side" placeholder="検索... (Enterで実行)" autocomplete="on">
         </form>      
         <div id="logged-in-nav" class="hidden">
             <button onclick="openEditor()">新規投稿</button>
@@ -760,8 +760,12 @@
         document.getElementById('account-overlay').classList.remove('hidden');
         document.getElementById('change-email-input').value = "";
         document.getElementById('change-password-input').value = "";
+        document.body.style.overflow = 'hidden'; // ★背景スクロール防止
     }
-    function closeAccountSettings() { document.getElementById('account-overlay').classList.add('hidden'); }
+    function closeAccountSettings() { 
+        document.getElementById('account-overlay').classList.add('hidden'); 
+        document.body.style.overflow = ''; // ★背景スクロール解除
+    }
 
     async function updateUserEmail() {
         const newEmail = document.getElementById('change-email-input').value.trim();
@@ -1068,9 +1072,13 @@
             document.getElementById('current-count').innerText = len.toLocaleString();
         }
         document.getElementById('editor-overlay').style.display = 'block';
+        document.body.style.overflow = 'hidden'; // ★背景スクロール防止
     }
 
-    function closeEditor() { document.getElementById('editor-overlay').style.display = 'none'; }
+    function closeEditor() { 
+        document.getElementById('editor-overlay').style.display = 'none'; 
+        document.body.style.overflow = ''; // ★背景スクロール解除
+    }
     
     function saveDraft() {
         if (editingNovelId) return;
@@ -1186,6 +1194,7 @@
         const overlay = document.getElementById('series-overlay');
         overlay.style.display = 'block'; 
         overlay.classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // ★背景スクロール防止
         
         if (typeof toggleSeriesEditMode === 'function') toggleSeriesEditMode(false);
 
@@ -1282,6 +1291,7 @@
         overlay.style.display = 'none';
         document.getElementById('series-dynamic-style').innerHTML = ""; 
         document.getElementById('series-custom-html-area').innerHTML = "";
+        document.body.style.overflow = ''; // ★背景スクロール解除
     }
 
     async function toggleSeriesEditMode(isEdit) {
@@ -1406,6 +1416,7 @@
 
         const overlay = document.getElementById('reader-overlay');
         overlay.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // ★背景スクロール防止
         overlay.scrollTop = 0;
         lastScrollTop = 0; 
         
@@ -1434,6 +1445,7 @@
         document.getElementById('reader-overlay').style.display = 'none'; 
         const oldStyle = document.getElementById('dynamic-reader-style');
         if (oldStyle) oldStyle.remove();
+        document.body.style.overflow = ''; // ★背景スクロール解除
     }
 
     function applyNameChange() {
@@ -1506,6 +1518,7 @@
         </div>`;
         
         document.getElementById('reader-overlay').style.display = 'block';
+        document.body.style.overflow = 'hidden'; // ★背景スクロール防止
         document.getElementById('reader-overlay').scrollTop = 0;
     }
 
@@ -1534,6 +1547,7 @@
             <p style="font-size: 0.95em; margin-bottom: 25px;"><strong>◎フォロー・フォロワー</strong><br>　作者には、フォローしたことがお知らせされます。作者以外には、誰が誰をフォローしているか分かりません。</p>
         </div>`;
         document.getElementById('reader-overlay').style.display = 'block';
+        document.body.style.overflow = 'hidden'; // ★背景スクロール防止
         document.getElementById('reader-overlay').scrollTop = 0;
     }
 
@@ -1557,6 +1571,7 @@
         
         worksEl.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">作品データを読み込み中...</div>';
         overlay.style.display = 'block';
+        document.body.style.overflow = 'hidden'; // ★背景スクロール防止
         
         if(typeof closeReader === 'function') closeReader();
 
@@ -1638,6 +1653,7 @@
     function closeAuthorPage() {
         document.getElementById('author-page-overlay').style.display = 'none';
         document.getElementById('user-custom-style').innerHTML = ""; 
+        document.body.style.overflow = ''; // ★背景スクロール解除
     }
 
     // ==========================================
@@ -1887,9 +1903,13 @@
 
         document.getElementById('like-users-list').innerHTML = listHtml;
         document.getElementById('like-users-overlay').classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // ★背景スクロール防止
     }
 
-    function closeLikeModal() { document.getElementById('like-users-overlay').classList.add('hidden'); }
+    function closeLikeModal() { 
+        document.getElementById('like-users-overlay').classList.add('hidden'); 
+        document.body.style.overflow = ''; // ★背景スクロール解除
+    }
 
     async function showFollowingList() {
         if (!currentUser) return;
@@ -1931,13 +1951,19 @@
 
         document.getElementById('like-users-list').innerHTML = listHtml;
         document.getElementById('like-users-overlay').classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // ★背景スクロール防止
     }
 
     function openRequestForm() {
         document.getElementById('request-content').value = ""; 
         document.getElementById('request-overlay').classList.remove('hidden');
+        document.body.style.overflow = 'hidden'; // ★背景スクロール防止
     }
-    function closeRequestForm() { document.getElementById('request-overlay').classList.add('hidden'); }
+    
+    function closeRequestForm() { 
+        document.getElementById('request-overlay').classList.add('hidden'); 
+        document.body.style.overflow = ''; // ★背景スクロール解除
+    }
 
     async function sendRequest() {
         const content = document.getElementById('request-content').value.trim();
@@ -1983,7 +2009,6 @@
     
     const readerOverlay = document.getElementById('reader-overlay');
     readerOverlay.addEventListener('scroll', function() {
-        // ★ バグ修正：ページ全体から探すのではなく、読書画面の中にあるメニューだけを探す！
         const stickyEl = readerOverlay.querySelector('.sticky-close'); 
         if (!stickyEl || window.innerWidth > 800) return;
         
