@@ -282,6 +282,14 @@
             from { opacity: 0; transform: scale(0.95); }
             to { opacity: 1; transform: scale(1); }
         }
+
+        /* ブラウザ標準の検索窓の消去ボタンを完全に無効化する */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+    -webkit-appearance: none;
+    appearance: none;
+    display: none !important; /* 念のため強制非表示！ */
+}
     </style>
 
     <style id="user-custom-style"></style>
