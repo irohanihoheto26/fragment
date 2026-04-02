@@ -708,6 +708,18 @@ input[type="search"]::-webkit-search-decoration {
    不要なものは /* */ を外して display: none; にすると画面から消えます
 ========================================== */
 
+/* ■ 作者名を消して「サイトタイトル」に変更する場合 */
+/*
+#author-page-name {
+  font-size: 0 !important;
+}
+#author-page-name::before {
+  content: "ここにサイトタイトルを入力"; /* ←好きな名前に変更 */
+  font-size: 28px; /* 文字の大きさ */
+  color: #333;     /* 文字の色 */
+}
+*/
+
 /* ■ 作品1つ分の全体枠 */
 .novel-row { padding: 15px 0; border-bottom: 1px solid #eee; }
 .novel-title { font-size: 1.1em; color: #333 !important; font-weight: bold; }
