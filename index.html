@@ -912,6 +912,20 @@ function toggleSettings() {
         s.style.display = s.style.display==='block'?'none':'block'; 
         if (s.style.display === 'block') loadMyMemos(); // ★メモ一覧を読み込む処理を追加！
     }
+        // ★ここに追加します★
+    function resetToTemplate() {
+        if (confirm("マイページデザインを初期テンプレートに戻しますか？\n現在の編集内容は失われます。")) {
+            document.getElementById('prof-css').value = defaultAuthorTemplate;
+        }
+    }
+
+    function resetReaderDesign() {
+        if (confirm("文章画面のカスタマイズを初期デザインに戻しますか？\n現在の編集内容は失われます。")) {
+            document.getElementById('reader-custom-input').value = defaultReaderTemplate;
+        }
+    }
+    // ★追加ここまで★
+        
     // ==========================================
     // 6. LIBRARY & LIST DISPLAY
     // ==========================================
