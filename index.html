@@ -609,22 +609,31 @@ input[type="search"]::-webkit-search-decoration {
     </div>
 
     <div id="author-page-overlay">
-        <div class="sticky-close">
-            <button class="close-btn-style" onclick="closeAuthorPage()">← 戻る</button>
+    <div class="sticky-close">
+        <button class="close-btn-style" onclick="closeAuthorPage()">← 戻る</button>
+    </div>
+    <div class="overlay-content">
+        <div id="author-profile-header" style="margin-top:20px;">
+            
+            <div style="display:flex; align-items:baseline; gap:15px;">
+                <h1 id="author-page-name" style="font-family: 'Yu Gothic', sans-serif; margin-bottom:0;"></h1>
+                <span id="author-memo-link" onclick="toggleAuthorView('memo')" style="cursor:pointer; text-decoration:underline; color:#888; font-size:0.9em; transition:0.2s;">memo</span>
+                <span id="author-works-link" onclick="toggleAuthorView('works')" style="cursor:pointer; text-decoration:underline; color:#888; font-size:0.9em; display:none; transition:0.2s;">作品一覧へ戻る</span>
+            </div>
+            <div id="author-page-bio" style="margin-top:15px;"></div>
         </div>
-        <div class="overlay-content">
-            <div id="author-profile-header" style="margin-top:20px;">
-                <h1 id="author-page-name" style="font-family: 'Yu Gothic', sans-serif;"></h1>
-                <div id="author-page-bio"></div>
-            </div>
-            <div id="author-page-works" style="margin-top:30px;"></div>
-            <div class="site-footer">
-                <a onclick="location.reload()" class="footer-logo">Fragment</a>
-                <span style="color:#ccc; margin:0 10px; font-weight:100;">|</span>
-                <span style="font-size:0.75em; color:#aaa; letter-spacing:0.1em;">WEB NOVEL PLATFORM</span>
-            </div>
+        
+        <div id="author-page-works" style="margin-top:30px;"></div>
+        
+        <div id="author-page-memos" class="hidden" style="margin-top:30px;"></div>
+        
+        <div class="site-footer">
+            <a onclick="location.reload()" class="footer-logo">Fragment</a>
+            <span style="color:#ccc; margin:0 10px; font-weight:100;">|</span>
+            <span style="font-size:0.75em; color:#aaa; letter-spacing:0.1em;">WEB NOVEL PLATFORM</span>
         </div>
     </div>
+</div>
 
     <div id="request-overlay" class="hidden">
         <div class="like-modal-box">
