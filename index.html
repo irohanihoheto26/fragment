@@ -263,7 +263,7 @@
         .footer-logo:hover { color: var(--main-color); }
 
         /* Modal Styles */
-        #like-users-overlay, #request-overlay, #account-overlay {
+        #like-users-overlay, #request-overlay, #account-overlay, #memo-post-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0, 0, 0, 0.4); z-index: 5000; display: flex;
             align-items: center; justify-content: center; backdrop-filter: blur(2px);
@@ -700,12 +700,35 @@ input[type="search"]::-webkit-search-decoration {
     let currentOpenedSeriesId = null;
 
     const defaultReaderTemplate = `<style>\n#reader-overlay { background-color: #ffffff; color: #333333; }\n#read-body { max-width: 700px; margin: 0 auto; font-size: 1.1em; line-height: 2; }\n</style>`;
-    const defaultAuthorTemplate = `
+    const defaultAuthorTemplate = `<div id="custom-works-area"></div>
+
 <style>
-/* ここにマイページ用のCSSを自由に記述できます */
+/* ==========================================
+   マイページ・作品一覧のカスタマイズ設定
+   不要なものは /* */ を外して display: none; にすると画面から消えます
+========================================== */
+
+/* ■ 作品1つ分の全体枠 */
 .novel-row { padding: 15px 0; border-bottom: 1px solid #eee; }
-.novel-title { font-size: 1.1em; color: #333 !important; text-decoration: none; font-weight: bold; }
-.count-badge { font-size: 0.8em; color: #999; margin-left: 10px; }
+.novel-title { font-size: 1.1em; color: #333 !important; font-weight: bold; }
+
+/* ■ 「SHORT」のラベル */
+/* .badge-short { display: none !important; } */
+
+/* ■ 「SERIES」のラベル */
+/* .badge-series { display: none !important; } */
+
+/* ■ シリーズの「全○話」の表示 */
+/* .series-count { display: none !important; } */
+
+/* ■ シリーズの「最新: ○○」の表示 */
+/* .series-latest { display: none !important; } */
+
+/* ■ 右下の「文字数」の表示 */
+/* .novel-word-count { display: none !important; } */
+
+/* ■ R18のラベル */
+/* .badge-r18 { display: none !important; } */
 </style>
 `;
     const defaultSeriesTemplate = `\n<div class="series-header">\n    <h1 id="custom-series-title" class="series-title"></h1>\n    <div class="series-meta">Written by <span id="series-author-display" class="author-name">...</span></div>\n    <div id="custom-series-desc" class="series-desc"></div>\n</div>\n<div class="toc-container">\n    <h3 class="toc-heading">目次</h3>\n    <div id="series-works-area"></div>\n</div>\n<style>\n.series-header { border-bottom: 2px solid #ddd; padding-bottom: 20px; margin-bottom: 30px; text-align: center; }\n.series-title { font-size: 1.8em; margin: 10px 0; color: #333; line-height: 1.4; min-height: 1.4em; }\n.series-meta { font-size: 0.9em; color: #666; margin-bottom: 15px; }\n.author-name { color: #000; font-weight: bold; cursor: pointer; text-decoration: underline; }\n.series-desc { text-align: left; color: #444; font-size: 0.95em; line-height: 1.8; background: #f9f9f9; padding: 15px; border-radius: 8px; white-space: pre-wrap; min-height: 20px; }\n.toc-container { margin-top: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }\n.toc-heading { font-size: 1.1em; border-left: 4px solid #333; padding-left: 10px; margin-bottom: 15px; color: #333; }\n.novel-row { border-bottom: 1px solid #eee; padding: 15px 5px; transition: background 0.2s; display: flex; justify-content: space-between; align-items: baseline; }\n.novel-row:hover { background: #fafafa; }\n.novel-title { font-weight: bold; font-size: 1.05em; color: #333; text-decoration: none; cursor: pointer; }\n.novel-title:hover { text-decoration: underline; }\n.series-list-number { font-weight: bold; color: #ccc; font-family: sans-serif; font-size: 1.2em; margin-right: 15px; min-width: 25px; text-align: right; }\n.series-list-count { font-size: 0.8em; color: #999; margin-left: 10px; white-space: nowrap; }\n.badge-draft { background:#e0f2ff; color:#004080; font-size:0.7em; padding:2px 6px; border-radius:4px; margin-left:5px; }\n.badge-r18 { color:red; font-size:0.8em; margin-left:5px; font-weight:bold; }\n</style>`;
@@ -1801,32 +1824,32 @@ function toggleSettings() {
                 <div class="novel-row" onclick="openSeriesPage('${s.id}')" style="cursor:pointer; background:#fdfdfd;">
                     <div class="novel-info">
                         <div style="margin-bottom:5px;">
-                            <span style="background:#333; color:#fff; font-size:0.7em; padding:2px 6px; border-radius:2px; font-weight:bold;">SERIES</span>
-                            <span style="font-size:0.8em; color:#888; margin-left:5px;">全${item.stats.count}話</span>
+                            <span class="badge-series" style="background:#333; color:#fff; font-size:0.7em; padding:2px 6px; border-radius:2px; font-weight:bold;">SERIES</span>
+                            <span class="series-count" style="font-size:0.8em; color:#888; margin-left:5px;">全${item.stats.count}話</span>
                         </div>
                         <span class="novel-title" style="font-size:1.15em;">${s.title}</span>
-                        <div style="font-size:0.85em; color:#666; margin-top:5px;">
+                        <div class="series-latest" style="font-size:0.85em; color:#666; margin-top:5px;">
                             <span class="material-icons" style="font-size:1em; vertical-align:text-bottom;">history</span> 最新: ${item.stats.last_title}
                         </div>
                     </div>
-                    <div style="display: flex; align-items: center; gap: 8px; font-size:0.85em; color:#999;">
+                    <div class="novel-word-count" style="display: flex; align-items: center; gap: 8px; font-size:0.85em; color:#999;">
                         <span class="material-icons" style="font-size:1.1em;">library_books</span>
                         ${item.stats.chars.toLocaleString()}文字
                     </div>
                 </div>`;
             } else {
                 const n = item.data;
-                const r18Badge = n.is_r18 ? `<span class="r18-badge">R18</span>` : "";
+                const r18Badge = n.is_r18 ? `<span class="badge-r18 r18-badge">R18</span>` : "";
                 return `
                 <div class="novel-row">
                     <div class="novel-info">
                         <div style="margin-bottom:5px;">
-                            <span style="background:#eee; color:#555; font-size:0.7em; padding:2px 6px; border-radius:2px;">SHORT</span>
+                            <span class="badge-short" style="background:#eee; color:#555; font-size:0.7em; padding:2px 6px; border-radius:2px;">SHORT</span>
                         </div>
                         <span class="novel-title" onclick="openReader('${n.id}')" style="cursor:pointer;">${n.title}</span>
                         ${r18Badge}
                     </div>
-                    <div style="display: flex; align-items: center; gap: 8px; font-size:0.85em; color:#999;">
+                    <div class="novel-word-count" style="display: flex; align-items: center; gap: 8px; font-size:0.85em; color:#999;">
                         ${n.content.length.toLocaleString()}文字
                     </div>
                 </div>`;
