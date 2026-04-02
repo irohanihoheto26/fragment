@@ -329,9 +329,6 @@ input[type="search"]::-webkit-search-decoration {
         <div id="guest-nav">
             <button onclick="toggleAuthForm()">ログイン / 登録</button>
         </div>
-        <div id="guest-nav">
-            <button onclick="toggleAuthForm()">ログイン / 登録</button>
-        </div>
 
         <div id="sidebar-updates" style="margin-top: 30px; border-top: 1px dashed #ccc; padding-top: 15px;">
             <h3 style="font-size: 0.9em; margin: 0 0 10px 0; color: #333;">更新情報</h3>
@@ -990,6 +987,13 @@ function toggleSettings() {
                          </div>`;
         }
 
+// ★ここを修正：管理人のページを開いている時だけ「【更新】」を除外する
+        const personalMemos = (memosData || []).filter(m => {
+            if (authorId === ADMIN_USER_ID) {
+                return !m.content.startsWith('【更新】');
+            }
+            return true; // 他のユーザーの場合はすべて表示する
+        });
         if (!memosData || memosData.length === 0) {
             memoHtml += '<div style="padding:20px; text-align:center; color:#888;">メモはありません</div>';
         } else {
