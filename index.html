@@ -329,6 +329,17 @@ input[type="search"]::-webkit-search-decoration {
         <div id="guest-nav">
             <button onclick="toggleAuthForm()">ログイン / 登録</button>
         </div>
+        <div id="guest-nav">
+            <button onclick="toggleAuthForm()">ログイン / 登録</button>
+        </div>
+
+        <div id="sidebar-updates" style="margin-top: 30px; border-top: 1px dashed #ccc; padding-top: 15px;">
+            <h3 style="font-size: 0.9em; margin: 0 0 10px 0; color: #333;">更新情報</h3>
+            <div id="sidebar-updates-list" style="font-size: 0.8em; color: #666; max-height: 150px; overflow-y: auto; line-height: 1.6;">
+                読み込み中...
+            </div>
+        </div>
+        </aside>
     </aside>
 
     <main>
@@ -776,6 +787,7 @@ input[type="search"]::-webkit-search-decoration {
     async function init() {
         const { data: { session } } = await api.auth.getSession();
         currentUser = session?.user || null;
+        loadSiteUpdates();
 
         if (currentUser) {
             document.getElementById('logged-in-nav').classList.remove('hidden');
@@ -1895,6 +1907,55 @@ function toggleSettings() {
         document.body.style.overflow = ''; // ★背景スクロール解除
     }
 
+    // ==========================================
+    // サイト更新情報の取得 (サイドバー用)
+    // ==========================================
+    // ★ここにあなたのSupabaseのユーザーUIDを入れます★
+    const ADMIN_USER_ID = '1dd26209-221a-471b-8717-75440cc3ec29'; 
+
+    async function loadSiteUpdates() {
+        const listEl = document.getElementById('sidebar-updates-list');
+        if (!listEl) return;
+        
+        if (!ADMIN_USER_ID || ADMIN_USER_ID.includes('ここにあなたの')) {
+            listEl.innerHTML = '※管理人のIDが未設定です';
+            return;
+        }
+
+        // 管理人のメモだけを最新順で取得
+        const { data, error } = await api.from('memos')
+            .select('*')
+            .eq('author_id', ADMIN_USER_ID)
+            .order('created_at', { ascending: false });
+
+        if (error) {
+            listEl.innerHTML = '読み込みに失敗しました。';
+            return;
+        }
+
+        // 先頭が「【更新】」から始まるメモだけを抽出
+        const updates = data.filter(m => m.content.startsWith('【更新】'));
+
+        if (updates.length === 0) {
+            listEl.innerHTML = 'まだ更新情報はありません。';
+            return;
+        }
+
+        // 抽出したメモをHTMLに変換して表示
+        listEl.innerHTML = updates.map(m => {
+            const dateObj = new Date(m.created_at);
+            const dateStr = `${dateObj.getFullYear()}/${dateObj.getMonth()+1}/${dateObj.getDate()}`;
+            
+            // 「【更新】」という文字自体はサイドバー表示時に消す
+            const cleanContent = escapeHtml(m.content.replace(/^【更新】\s*/, ''));
+            
+            return `<div style="margin-bottom: 8px;">
+                        <span style="color: #999; font-size: 0.9em;">${dateStr}</span><br>
+                        ${cleanContent}
+                    </div>`;
+        }).join('');
+    }
+        
     // ==========================================
     // 10. INTERACTION
     // ==========================================
