@@ -695,8 +695,9 @@ input[type="search"]::-webkit-search-decoration {
             
             <div id="design-edit-memo-area" class="hidden">
                 <h4 style="margin-bottom: 5px; font-size: 0.95em;">メモ一覧のカスタマイズ (CSS)</h4>
+                <button type="button" onclick="resetMemoDesign()" style="width:auto; font-size:0.8em; margin-bottom:5px;">初期デザインに戻す</button>
                 <p style="font-size:0.8em; color:#666; margin:0 0 5px 0;">※ .memo-item, .memo-date, .memo-content などのクラスを指定して装飾できます。</p>
-                <textarea id="modal-prof-memo-css" style="width:100%; height:150px; font-family:monospace; font-size:0.9em;" placeholder=".memo-item { border-bottom: 1px dashed #eee; padding: 15px 0; }"></textarea>
+                <textarea id="modal-prof-memo-css" style="width:100%; height:150px; font-family:monospace; font-size:0.9em;"></textarea>
             </div>
             
             <button onclick="saveDesignSettings()" style="background:var(--main-color); color:#fff; border:none; margin-top:15px; margin-bottom:10px;">保存して適用</button>
@@ -767,6 +768,30 @@ input[type="search"]::-webkit-search-decoration {
 `;
     const defaultSeriesTemplate = `\n<div class="series-header">\n    <h1 id="custom-series-title" class="series-title"></h1>\n    <div class="series-meta">Written by <span id="series-author-display" class="author-name">...</span></div>\n    <div id="custom-series-desc" class="series-desc"></div>\n</div>\n<div class="toc-container">\n    <h3 class="toc-heading">目次</h3>\n    <div id="series-works-area"></div>\n</div>\n<style>\n.series-header { border-bottom: 2px solid #ddd; padding-bottom: 20px; margin-bottom: 30px; text-align: center; }\n.series-title { font-size: 1.8em; margin: 10px 0; color: #333; line-height: 1.4; min-height: 1.4em; }\n.series-meta { font-size: 0.9em; color: #666; margin-bottom: 15px; }\n.author-name { color: #000; font-weight: bold; cursor: pointer; text-decoration: underline; }\n.series-desc { text-align: left; color: #444; font-size: 0.95em; line-height: 1.8; background: #f9f9f9; padding: 15px; border-radius: 8px; white-space: pre-wrap; min-height: 20px; }\n.toc-container { margin-top: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }\n.toc-heading { font-size: 1.1em; border-left: 4px solid #333; padding-left: 10px; margin-bottom: 15px; color: #333; }\n.novel-row { border-bottom: 1px solid #eee; padding: 15px 5px; transition: background 0.2s; display: flex; justify-content: space-between; align-items: baseline; }\n.novel-row:hover { background: #fafafa; }\n.novel-title { font-weight: bold; font-size: 1.05em; color: #333; text-decoration: none; cursor: pointer; }\n.novel-title:hover { text-decoration: underline; }\n.series-list-number { font-weight: bold; color: #ccc; font-family: sans-serif; font-size: 1.2em; margin-right: 15px; min-width: 25px; text-align: right; }\n.series-list-count { font-size: 0.8em; color: #999; margin-left: 10px; white-space: nowrap; }\n.badge-draft { background:#e0f2ff; color:#004080; font-size:0.7em; padding:2px 6px; border-radius:4px; margin-left:5px; }\n.badge-r18 { color:red; font-size:0.8em; margin-left:5px; font-weight:bold; }\n</style>`;
 
+        const defaultSeriesTemplate = `\n<div class="series-header">\n    <h1 id="custom-series-title" class="series-title"></h1>\n    <div class="series-meta">Written by <span id="series-author-display" class="author-name">...</span></div>\n    <div id="custom-series-desc" class="series-desc"></div>\n</div>\n<div class="toc-container">\n    <h3 class="toc-heading">目次</h3>\n    <div id="series-works-area"></div>\n</div>\n<style>\n.series-header { border-bottom: 2px solid #ddd; padding-bottom: 20px; margin-bottom: 30px; text-align: center; }\n.series-title { font-size: 1.8em; margin: 10px 0; color: #333; line-height: 1.4; min-height: 1.4em; }\n.series-meta { font-size: 0.9em; color: #666; margin-bottom: 15px; }\n.author-name { color: #000; font-weight: bold; cursor: pointer; text-decoration: underline; }\n.series-desc { text-align: left; color: #444; font-size: 0.95em; line-height: 1.8; background: #f9f9f9; padding: 15px; border-radius: 8px; white-space: pre-wrap; min-height: 20px; }\n.toc-container { margin-top: 20px; max-width: 800px; margin-left: auto; margin-right: auto; }\n.toc-heading { font-size: 1.1em; border-left: 4px solid #333; padding-left: 10px; margin-bottom: 15px; color: #333; }\n.novel-row { border-bottom: 1px solid #eee; padding: 15px 5px; transition: background 0.2s; display: flex; justify-content: space-between; align-items: baseline; }\n.novel-row:hover { background: #fafafa; }\n.novel-title { font-weight: bold; font-size: 1.05em; color: #333; text-decoration: none; cursor: pointer; }\n.novel-title:hover { text-decoration: underline; }\n.series-list-number { font-weight: bold; color: #ccc; font-family: sans-serif; font-size: 1.2em; margin-right: 15px; min-width: 25px; text-align: right; }\n.series-list-count { font-size: 0.8em; color: #999; margin-left: 10px; white-space: nowrap; }\n.badge-draft { background:#e0f2ff; color:#004080; font-size:0.7em; padding:2px 6px; border-radius:4px; margin-left:5px; }\n.badge-r18 { color:red; font-size:0.8em; margin-left:5px; font-weight:bold; }\n</style>`;
+
+    // ★ ここから追加
+    const defaultMemoTemplate = `/* メモ全体の枠組み */
+.memo-item {
+    border-bottom: 1px dashed #eee;
+    padding: 15px 0;
+}
+
+/* メモの日付部分 */
+.memo-date {
+    font-size: 0.8em;
+    color: #888; /* 日付の文字色 */
+    margin-bottom: 5px;
+}
+
+/* メモの本文部分 */
+.memo-content {
+    font-size: 1em; /* 文字のサイズ */
+    color: #333; /* 文字の色 */
+    line-height: 1.6;
+}`;
+    // ★ ここまで追加
+        
     // ==========================================
     // 2. UTILITIES
     // ==========================================
@@ -2155,23 +2180,24 @@ function toggleSettings() {
     function toggleAuthorView(viewType) {
         const worksArea = document.getElementById('author-page-works');
         const memosArea = document.getElementById('author-page-memos');
+        const customWorksArea = document.getElementById('custom-works-area'); // ★追加
         const memoLink = document.getElementById('author-memo-link');
         const worksLink = document.getElementById('author-works-link');
 
         if (viewType === 'memo') {
             worksArea.classList.add('hidden');
+            if (customWorksArea) customWorksArea.classList.add('hidden'); // ★追加：カスタム枠も隠す
             memosArea.classList.remove('hidden');
             memoLink.style.display = 'none';
             worksLink.style.display = 'inline';
         } else {
             worksArea.classList.remove('hidden');
+            if (customWorksArea) customWorksArea.classList.remove('hidden'); // ★追加：カスタム枠も出す
             memosArea.classList.add('hidden');
             memoLink.style.display = 'inline';
             worksLink.style.display = 'none';
         }
     }
-
-   
 
     // ==========================================
     // 11. NOTIFICATIONS & MODALS
@@ -2318,7 +2344,8 @@ function toggleSettings() {
         if (prof) {
             document.getElementById('modal-prof-css').value = prof.custom_css || defaultAuthorTemplate;
             document.getElementById('modal-reader-custom').value = prof.reader_custom_code || defaultReaderTemplate;
-            document.getElementById('modal-prof-memo-css').value = prof.memo_custom_css || "";
+            // ★ 初期デザインが入るように修正
+            document.getElementById('modal-prof-memo-css').value = prof.memo_custom_css || defaultMemoTemplate;
         }
 
         // 開いているタブが「メモ」かどうか判定して表示を切り替える
@@ -2332,6 +2359,12 @@ function toggleSettings() {
         }
 
         document.getElementById('design-edit-overlay').classList.remove('hidden');
+    }
+
+        function resetMemoDesign() {
+        if (confirm("メモ一覧のカスタマイズを初期デザインに戻しますか？\n現在の編集内容は失われます。")) {
+            document.getElementById('modal-prof-memo-css').value = defaultMemoTemplate;
+        }
     }
 
     function closeDesignEdit() {
