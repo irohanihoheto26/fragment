@@ -994,10 +994,10 @@ function toggleSettings() {
             }
             return true; // 他のユーザーの場合はすべて表示する
         });
-        if (!memosData || memosData.length === 0) {
+        if (!personalMemos || personalMemos.length === 0) {
             memoHtml += '<div style="padding:20px; text-align:center; color:#888;">メモはありません</div>';
         } else {
-            memoHtml += memosData.map(m => {
+            memoHtml += personalMemos.map(m => {
                 const dateObj = new Date(m.created_at);
                 const dateStr = `${dateObj.getFullYear()}/${dateObj.getMonth()+1}/${dateObj.getDate()} ${dateObj.getHours()}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
                 
@@ -1885,24 +1885,9 @@ function toggleSettings() {
         }).join('');
 
         if (customArea && customArea !== worksEl) worksEl.innerHTML = "";
-        // ★ここから追加！ (関数の最後、 } の直前に入れます) ★
-        const memosEl = document.getElementById('author-page-memos');
-        memosEl.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">メモを読み込み中...</div>';
-        const { data: memosData } = await api.from('memos').select('*').eq('author_id', authorId).order('created_at', { ascending: false });
         
-        if (!memosData || memosData.length === 0) {
-            memosEl.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">メモはありません</div>';
-        } else {
-            memosEl.innerHTML = memosData.map(m => {
-                const dateObj = new Date(m.created_at);
-                const dateStr = `${dateObj.getFullYear()}/${dateObj.getMonth()+1}/${dateObj.getDate()} ${dateObj.getHours()}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
-                return `<div class="memo-item" style="margin-bottom:20px;">
-                            <div class="memo-date" style="font-size:0.8em; color:#888; margin-bottom:5px;">${dateStr}</div>
-                            <div class="memo-content" style="white-space:pre-wrap; line-height:1.6;">${escapeHtml(m.content)}</div>
-                        </div>`;
-            }).join('');
-        }
-            await loadAuthorMemos(authorId);  
+        // メモ一覧の読み込み（専用の関数にお任せ！）
+        await loadAuthorMemos(authorId);  
     }
 
     function closeAuthorPage() {
