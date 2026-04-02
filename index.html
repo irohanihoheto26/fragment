@@ -371,21 +371,7 @@ input[type="search"]::-webkit-search-decoration {
             <div id="profile-edit-area" class="profile-edit-area" style="background:#f9f9f9; padding:20px; border:1px solid #eee; margin-bottom:20px; display:none;">
                 <input type="text" id="prof-name" placeholder="作者名">
                 <textarea id="prof-bio" placeholder="自己紹介" rows="3"></textarea>
-                <h3 style="font-size: 0.9em; margin: 15px 0 5px;">マイページデザイン (HTML/CSS)</h3>
-                <button type="button" onclick="resetToTemplate()" style="width:auto; font-size:0.8em; margin-bottom:5px;">初期デザインに戻す</button>
-                <textarea id="prof-css" style="width:100%; height:100px;"></textarea>
                 
-                <div style="margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 20px;">
-                    <h3 style="font-size: 0.9em; margin-bottom: 5px;">文章画面のカスタマイズ (CSS)</h3>
-                    <button type="button" onclick="resetReaderDesign()" style="width:auto; font-size:0.8em; margin-bottom:5px;">初期デザインに戻す</button>
-                    <textarea id="reader-custom-input" style="width:100%; height:100px;"></textarea>
-                </div>
-                
-                <div style="margin-top: 20px; border-top: 1px dashed #ccc; padding-top: 20px;">
-                    <h3 style="font-size: 0.9em; margin-bottom: 5px;">メモ一覧のカスタマイズ (CSS)</h3>
-                    <p style="font-size:0.8em; color:#666; margin:0 0 5px 0;">※ .memo-item, .memo-date, .memo-content などのクラスを指定して装飾できます。</p>
-                    <textarea id="prof-memo-css" style="width:100%; height:80px;" placeholder=".memo-item { border-bottom: 1px dashed #eee; padding: 15px 0; }"></textarea>
-                </div>
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed #ccc;">
                     <button type="button" onclick="openAccountSettings()" style="background:#fff; border:1px solid #333; color:#333;">
                         <span class="material-icons" style="vertical-align:text-bottom; font-size:1.1em;">manage_accounts</span> アカウント設定（メアド・パスワード）
@@ -607,11 +593,13 @@ input[type="search"]::-webkit-search-decoration {
     </div>
     <div class="overlay-content">
         <div id="author-profile-header" style="margin-top:20px;">
-            
-            <div style="display:flex; align-items:baseline; gap:15px;">
-                <h1 id="author-page-name" style="font-family: 'Yu Gothic', sans-serif; margin-bottom:0;"></h1>
-                <span id="author-memo-link" onclick="toggleAuthorView('memo')" style="cursor:pointer; text-decoration:underline; color:#888; font-size:0.9em; transition:0.2s;">memo</span>
-                <span id="author-works-link" onclick="toggleAuthorView('works')" style="cursor:pointer; text-decoration:underline; color:#888; font-size:0.9em; display:none; transition:0.2s;">作品一覧へ戻る</span>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div style="display:flex; align-items:baseline; gap:15px;">
+                    <h1 id="author-page-name" style="font-family: 'Yu Gothic', sans-serif; margin-bottom:0;"></h1>
+                    <span id="author-memo-link" onclick="toggleAuthorView('memo')" style="cursor:pointer; text-decoration:underline; color:#888; font-size:0.9em; transition:0.2s;">memo</span>
+                    <span id="author-works-link" onclick="toggleAuthorView('works')" style="cursor:pointer; text-decoration:underline; color:#888; font-size:0.9em; display:none; transition:0.2s;">作品一覧へ戻る</span>
+                </div>
+                <span id="author-design-settings-btn" onclick="openDesignEdit()" class="hidden material-icons" style="cursor:pointer; color:#888; font-size:1.5em; padding:5px; border-radius:50%; transition:0.2s; background:#f0f0f0;" onmouseover="this.style.background='#e0e0e0'; this.style.color='#333';" onmouseout="this.style.background='#f0f0f0'; this.style.color='#888';" title="デザイン設定">settings</span>
             </div>
             <div id="author-page-bio" style="margin-top:15px;"></div>
         </div>
@@ -687,6 +675,32 @@ input[type="search"]::-webkit-search-decoration {
             <textarea id="modal-memo-input" rows="4" placeholder="新しいメモを入力...（更新情報など）" style="width:100%; box-sizing:border-box; margin-bottom:15px;"></textarea>
             <button onclick="postMemoFromModal()" style="background:#fcaf17; color:#fff; border:none; margin-bottom:10px;">投稿する</button>
             <button onclick="closeMemoForm()" style="background:#eee; color:#333; border:none; width:100%;">キャンセル</button>
+        </div>
+    </div>
+    <div id="design-edit-overlay" class="hidden" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.4); z-index: 5000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(2px);">
+        <div class="like-modal-box" style="max-width: 600px; width: 95%;">
+            <h3 style="margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px; font-size:1.1em;">
+                <span class="material-icons" style="vertical-align:text-bottom; color:var(--main-color);">palette</span> デザイン設定
+            </h3>
+            
+            <div id="design-edit-works-area">
+                <h4 style="margin-bottom: 5px; font-size: 0.95em;">マイページデザイン (HTML/CSS)</h4>
+                <button type="button" onclick="resetToTemplate()" style="width:auto; font-size:0.8em; margin-bottom:5px;">初期デザインに戻す</button>
+                <textarea id="modal-prof-css" style="width:100%; height:150px; font-family:monospace; font-size:0.9em;"></textarea>
+                
+                <h4 style="margin-bottom: 5px; margin-top: 15px; font-size: 0.95em;">文章画面のカスタマイズ (CSS)</h4>
+                <button type="button" onclick="resetReaderDesign()" style="width:auto; font-size:0.8em; margin-bottom:5px;">初期デザインに戻す</button>
+                <textarea id="modal-reader-custom" style="width:100%; height:100px; font-family:monospace; font-size:0.9em;"></textarea>
+            </div>
+            
+            <div id="design-edit-memo-area" class="hidden">
+                <h4 style="margin-bottom: 5px; font-size: 0.95em;">メモ一覧のカスタマイズ (CSS)</h4>
+                <p style="font-size:0.8em; color:#666; margin:0 0 5px 0;">※ .memo-item, .memo-date, .memo-content などのクラスを指定して装飾できます。</p>
+                <textarea id="modal-prof-memo-css" style="width:100%; height:150px; font-family:monospace; font-size:0.9em;" placeholder=".memo-item { border-bottom: 1px dashed #eee; padding: 15px 0; }"></textarea>
+            </div>
+            
+            <button onclick="saveDesignSettings()" style="background:var(--main-color); color:#fff; border:none; margin-top:15px; margin-bottom:10px;">保存して適用</button>
+            <button onclick="closeDesignEdit()" style="background:#eee; color:#333; border:none; width:100%;">キャンセル</button>
         </div>
     </div>
         
@@ -929,9 +943,6 @@ input[type="search"]::-webkit-search-decoration {
         if (data) {
             document.getElementById('prof-name').value = data.display_name || "名無し";
             document.getElementById('prof-bio').value = data.bio || "";
-            document.getElementById('prof-css').value = data.custom_css || defaultAuthorTemplate;
-            document.getElementById('reader-custom-input').value = data.reader_custom_code || defaultReaderTemplate;
-            document.getElementById('prof-memo-css').value = data.memo_custom_css || ""; // ★追加！
             document.getElementById('display-current-name').innerText = data.display_name || "名無し";
             document.getElementById('view-my-page-link').onclick = () => openAuthorPage(currentUser.id);
         }
@@ -942,8 +953,6 @@ input[type="search"]::-webkit-search-decoration {
         if (!name) return alert("作者名は必須です！");
         const updates = { 
             id: currentUser.id, display_name: name, bio: document.getElementById('prof-bio').value, 
-            custom_css: document.getElementById('prof-css').value, reader_custom_code: document.getElementById('reader-custom-input').value, 
-            memo_custom_css: document.getElementById('prof-memo-css').value, // ★追加！
             updated_at: new Date() 
         };
         const { error } = await api.from('profiles').upsert(updates);
@@ -961,13 +970,13 @@ function toggleSettings() {
         // ★ここに追加します★
     function resetToTemplate() {
         if (confirm("マイページデザインを初期テンプレートに戻しますか？\n現在の編集内容は失われます。")) {
-            document.getElementById('prof-css').value = defaultAuthorTemplate;
+            document.getElementById('modal-prof-css').value = defaultAuthorTemplate;
         }
     }
 
     function resetReaderDesign() {
         if (confirm("文章画面のカスタマイズを初期デザインに戻しますか？\n現在の編集内容は失われます。")) {
-            document.getElementById('reader-custom-input').value = defaultReaderTemplate;
+            document.getElementById('modal-reader-custom').value = defaultReaderTemplate;
         }
     }
 
@@ -1809,6 +1818,14 @@ function toggleSettings() {
         worksEl.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">作品データを読み込み中...</div>';
         overlay.style.display = 'block';
         document.body.style.overflow = 'hidden'; // ★背景スクロール防止
+
+        // ★歯車ボタンの表示制御を追加
+        const settingsBtn = document.getElementById('author-design-settings-btn');
+        if (currentUser && currentUser.id === authorId) {
+            settingsBtn.classList.remove('hidden');
+        } else {
+            settingsBtn.classList.add('hidden');
+        }
         
         if(typeof closeReader === 'function') closeReader();
 
@@ -2293,6 +2310,56 @@ function toggleSettings() {
         const url = window.location.href; 
         const intentUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}&hashtags=${hashtags}`;
         window.open(intentUrl, '_blank');
+    }
+
+        async function openDesignEdit() {
+        // 現在のユーザー情報を取得してセット
+        const { data: prof } = await api.from('profiles').select('*').eq('id', currentUser.id).single();
+        if (prof) {
+            document.getElementById('modal-prof-css').value = prof.custom_css || defaultAuthorTemplate;
+            document.getElementById('modal-reader-custom').value = prof.reader_custom_code || defaultReaderTemplate;
+            document.getElementById('modal-prof-memo-css').value = prof.memo_custom_css || "";
+        }
+
+        // 開いているタブが「メモ」かどうか判定して表示を切り替える
+        const isMemoView = !document.getElementById('author-page-memos').classList.contains('hidden');
+        if (isMemoView) {
+            document.getElementById('design-edit-works-area').classList.add('hidden');
+            document.getElementById('design-edit-memo-area').classList.remove('hidden');
+        } else {
+            document.getElementById('design-edit-works-area').classList.remove('hidden');
+            document.getElementById('design-edit-memo-area').classList.add('hidden');
+        }
+
+        document.getElementById('design-edit-overlay').classList.remove('hidden');
+    }
+
+    function closeDesignEdit() {
+        document.getElementById('design-edit-overlay').classList.add('hidden');
+    }
+
+    async function saveDesignSettings() {
+        const custom_css = document.getElementById('modal-prof-css').value;
+        const reader_custom = document.getElementById('modal-reader-custom').value;
+        const memo_custom = document.getElementById('modal-prof-memo-css').value;
+
+        const updates = { 
+            id: currentUser.id, 
+            custom_css: custom_css, 
+            reader_custom_code: reader_custom, 
+            memo_custom_css: memo_custom,
+            updated_at: new Date() 
+        };
+        
+        const { error } = await api.from('profiles').upsert(updates);
+        if (error) {
+            alert("エラー: " + error.message);
+        } else { 
+            alert("デザイン設定を保存しました！"); 
+            closeDesignEdit();
+            // マイページを再度開いて最新のデザインを反映させる
+            openAuthorPage(currentUser.id); 
+        }
     }
 
     // ==========================================
