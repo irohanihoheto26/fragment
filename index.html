@@ -378,13 +378,6 @@ input[type="search"]::-webkit-search-decoration {
                     <p style="font-size:0.8em; color:#666; margin:0 0 5px 0;">※ .memo-item, .memo-date, .memo-content などのクラスを指定して装飾できます。</p>
                     <textarea id="prof-memo-css" style="width:100%; height:80px;" placeholder=".memo-item { border-bottom: 1px dashed #eee; padding: 15px 0; }"></textarea>
                 </div>
-
-                <div style="margin-top: 20px; border-top: 1px solid #333; padding-top: 20px;">
-                    <h3 style="font-size: 1em; margin-bottom: 10px;">メモの投稿・管理</h3>
-                    <textarea id="new-memo-input" rows="3" placeholder="新しいメモを入力...（更新情報など）"></textarea>
-                    <button type="button" onclick="postMemo()" style="width:auto; font-size:0.8em; margin-bottom:15px; background:#fcaf17; color:#fff; border:none;">メモを投稿する</button>
-                    <div id="my-memos-list" style="max-height: 200px; overflow-y: auto; border: 1px solid #eee; padding: 10px; background: #fff;"></div>
-                </div>
                 <div style="margin-top: 30px; padding-top: 20px; border-top: 1px dashed #ccc;">
                     <button type="button" onclick="openAccountSettings()" style="background:#fff; border:1px solid #333; color:#333;">
                         <span class="material-icons" style="vertical-align:text-bottom; font-size:1.1em;">manage_accounts</span> アカウント設定（メアド・パスワード）
@@ -677,7 +670,18 @@ input[type="search"]::-webkit-search-decoration {
             <button onclick="closeAccountSettings()" style="background:#eee; color:#333; border:none; width:100%;">閉じる</button>
         </div>
     </div>
-    
+
+        <div id="memo-post-overlay" class="hidden">
+        <div class="like-modal-box">
+            <h3 style="margin-top:0; border-bottom:1px solid #eee; padding-bottom:10px; font-size:1.1em;">
+                <span class="material-icons" style="vertical-align:text-bottom; color:#fcaf17;">edit_note</span> メモを投稿
+            </h3>
+            <textarea id="modal-memo-input" rows="4" placeholder="新しいメモを入力...（更新情報など）" style="width:100%; box-sizing:border-box; margin-bottom:15px;"></textarea>
+            <button onclick="postMemoFromModal()" style="background:#fcaf17; color:#fff; border:none; margin-bottom:10px;">投稿する</button>
+            <button onclick="closeMemoForm()" style="background:#eee; color:#333; border:none; width:100%;">キャンセル</button>
+        </div>
+    </div>
+        
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script>
     // ==========================================
@@ -909,7 +913,6 @@ input[type="search"]::-webkit-search-decoration {
 function toggleSettings() { 
         const s = document.getElementById('profile-edit-area'); 
         s.style.display = s.style.display==='block'?'none':'block'; 
-        if (s.style.display === 'block') loadMyMemos(); // ★メモ一覧を読み込む処理を追加！
     }
         // ★ここに追加します★
     function resetToTemplate() {
@@ -923,7 +926,72 @@ function toggleSettings() {
             document.getElementById('reader-custom-input').value = defaultReaderTemplate;
         }
     }
-    // ★追加ここまで★
+
+        // ★追加：メモ一覧だけを部分的に読み込む関数
+    async function loadAuthorMemos(authorId) {
+        const memosEl = document.getElementById('author-page-memos');
+        memosEl.innerHTML = '<div style="padding:20px; text-align:center; color:#888;">メモを読み込み中...</div>';
+        
+        const { data: memosData } = await api.from('memos').select('*').eq('author_id', authorId).order('created_at', { ascending: false });
+
+        let memoHtml = "";
+        
+        // ★自分が自分のページを見ている時だけ、投稿ボタンを表示
+        if (currentUser && currentUser.id === authorId) {
+            memoHtml += `<div style="text-align:right; margin-bottom:15px;">
+                            <button onclick="openMemoForm()" style="width:auto; font-size:0.8em; padding:6px 15px; background:#fcaf17; color:#fff; border:none; border-radius:4px;"><span class="material-icons" style="font-size:1.1em; vertical-align:middle; margin-right:2px;">edit</span>新規メモを投稿</button>
+                         </div>`;
+        }
+
+        if (!memosData || memosData.length === 0) {
+            memoHtml += '<div style="padding:20px; text-align:center; color:#888;">メモはありません</div>';
+        } else {
+            memoHtml += memosData.map(m => {
+                const dateObj = new Date(m.created_at);
+                const dateStr = `${dateObj.getFullYear()}/${dateObj.getMonth()+1}/${dateObj.getDate()} ${dateObj.getHours()}:${String(dateObj.getMinutes()).padStart(2, '0')}`;
+                
+                // ★自分が自分のページを見ている時だけ、削除ボタンを表示
+                const deleteBtn = (currentUser && currentUser.id === authorId) 
+                    ? `<span onclick="deleteMemoFromPage('${m.id}', '${authorId}')" style="color:red; cursor:pointer; text-decoration:underline; font-size:0.8em; margin-left:15px;">[削除]</span>` : "";
+
+                return `<div class="memo-item" style="margin-bottom:20px;">
+                            <div class="memo-date" style="font-size:0.8em; color:#888; margin-bottom:5px;">${dateStr}${deleteBtn}</div>
+                            <div class="memo-content" style="white-space:pre-wrap; line-height:1.6;">${escapeHtml(m.content)}</div>
+                        </div>`;
+            }).join('');
+        }
+        memosEl.innerHTML = memoHtml;
+    }
+
+    // ★追加：モーダル制御と投稿・削除ロジック
+    function openMemoForm() {
+        document.getElementById('modal-memo-input').value = "";
+        document.getElementById('memo-post-overlay').style.display = 'flex'; // hiddenではなくflexで表示
+        document.getElementById('memo-post-overlay').classList.remove('hidden');
+    }
+
+    function closeMemoForm() {
+        document.getElementById('memo-post-overlay').classList.add('hidden');
+    }
+
+    async function postMemoFromModal() {
+        const content = document.getElementById('modal-memo-input').value.trim();
+        if (!content) return alert("内容を入力してください");
+        
+        const { error } = await api.from('memos').insert({ author_id: currentUser.id, content: content });
+        if (error) alert("投稿エラー: " + error.message);
+        else {
+            closeMemoForm();
+            loadAuthorMemos(currentUser.id); // 画面をリロードせずメモ一覧だけ更新
+        }
+    }
+
+    async function deleteMemoFromPage(memoId, authorId) {
+        if (!confirm("このメモを削除しますか？")) return;
+        const { error } = await api.from('memos').delete().eq('id', memoId);
+        if (error) alert("削除エラー: " + error.message);
+        else loadAuthorMemos(authorId); // 画面をリロードせずメモ一覧だけ更新
+    }
         
     // ==========================================
     // 6. LIBRARY & LIST DISPLAY
@@ -1783,7 +1851,7 @@ function toggleSettings() {
                         </div>`;
             }).join('');
         }
-        // ★ここまで追加！★
+            await loadAuthorMemos(authorId);  
     }
 
     function closeAuthorPage() {
@@ -2001,43 +2069,7 @@ function toggleSettings() {
         }
     }
 
-    async function loadMyMemos() {
-        if (!currentUser) return;
-        const list = document.getElementById('my-memos-list');
-        list.innerHTML = "読み込み中...";
-        const { data, error } = await api.from('memos').select('*').eq('author_id', currentUser.id).order('created_at', { ascending: false });
-        
-        if (error) { list.innerHTML = "読込エラー"; return; }
-        if (!data || data.length === 0) { list.innerHTML = "<span style='color:#888; font-size:0.9em;'>メモはありません</span>"; return; }
-        
-        list.innerHTML = data.map(m => {
-            const date = new Date(m.created_at).toLocaleString();
-            return `<div style="border-bottom:1px dashed #ccc; padding:8px 0; font-size:0.9em;">
-                        <div style="color:#666; font-size:0.8em; margin-bottom:4px;">${date} <span onclick="deleteMemo('${m.id}')" style="color:red; cursor:pointer; text-decoration:underline; margin-left:10px;">[削除]</span></div>
-                        <div style="white-space:pre-wrap;">${escapeHtml(m.content)}</div>
-                    </div>`;
-        }).join('');
-    }
-
-    async function postMemo() {
-        const content = document.getElementById('new-memo-input').value.trim();
-        if (!content) return alert("内容を入力してください");
-        const { error } = await api.from('memos').insert({ author_id: currentUser.id, content: content });
-        if (error) alert("投稿エラー: " + error.message);
-        else {
-            document.getElementById('new-memo-input').value = "";
-            loadMyMemos();
-            alert("メモを投稿しました！");
-        }
-    }
-
-    async function deleteMemo(memoId) {
-        if (!confirm("このメモを削除しますか？")) return;
-        const { error } = await api.from('memos').delete().eq('id', memoId);
-        if (error) alert("削除エラー: " + error.message);
-        else loadMyMemos();
-    }
-    // ★ここまで追加！★
+   
 
     // ==========================================
     // 11. NOTIFICATIONS & MODALS
